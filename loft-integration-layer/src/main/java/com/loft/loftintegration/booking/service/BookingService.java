@@ -101,4 +101,49 @@ public class BookingService {
         booking.setStatus(BookingStatus.CANCELLED);
         bookingRepository.save(booking);
     }
+
+    /**
+     * Books an activity for a guest with explicit start and end times.
+     * Used by recurring booking materialization where duration may differ from default.
+     */
+    @Transactional
+    public Booking createBooking(String propertyCode, Long activityTypeId, String guestProfileId, 
+                                  String operaReservationId, LocalDateTime startTime, LocalDateTime endTime) {
+        ActivityType activityType = activityTypeRepository.findById(activityTypeId)
+                .orElseThrow(() -> new NoSuchElementException("No ActivityType with id " + activityTypeId));
+
+        Map<String, List<Resource>> assignedByRole =
+                availabilityService.findAvailableResources(
+                        propertyCode, activityType.getRequirements(), startTime, endTime);
+
+        Booking booking = new Booking(propertyCode, activityType, guestProfileId, operaReservationId, startTime, endTime);
+        booking.setStatus(BookingStatus.CONFIRMED);
+        booking = bookingRepository.save(booking);
+
+        for (Map.Entry<String, List<Resource>> entry : assignedByRole.entrySet()) {
+            String role = entry.getKey();
+            for (Resource resource : entry.getValue()) {
+                resourceAssignmentRepository.save(new ResourceAssignment(booking, resource, role));
+            }
+        }
+
+        return booking;
+    }
+
+    /**
+     * Count bookings that match a recurring pattern (for tracking occurrences).
+     */
+    public long countBookingsForRecurringPattern(RecurringBooking recurringBooking) {
+        // Simplified counting based on activity type and guest profile
+        // In production, you might want to track this more explicitly
+        return bookingRepository.countByActivityTypeAndGuestProfileId(
+            recurringBooking.getActivityType(), 
+            recurringBooking.getGuestProfileId()
+        );
+    }
+
+    public ActivityType getActivityType(Long id) {
+        return activityTypeRepository.findById(id)
+            .orElseThrow(() -> new NoSuchElementException("No ActivityType with id " + id));
+    }
 }

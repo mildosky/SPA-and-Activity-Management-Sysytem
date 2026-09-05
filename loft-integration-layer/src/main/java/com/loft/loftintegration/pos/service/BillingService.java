@@ -19,7 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
  * — when enabled — posts them to Opera's folio via SyncEngine.
  *
  * Opera folio posting is OFF by default
- * (tac-integration.opera-folio-posting-enabled: false in
+ * (loft-integration.opera-folio-posting-enabled: false in
  * application.yml) because OperaV5DirectConnector.postFolioCharge()
  * is built from UNVERIFIED column values (see its class doc) — this
  * flag exists specifically so nothing writes to Opera's live database
@@ -39,7 +39,7 @@ public class BillingService {
     private final boolean operaFolioPostingEnabled;
 
     public BillingService(ChargeRepository chargeRepository, SyncEngine syncEngine,
-                           @Value("${tac-integration.opera-folio-posting-enabled:false}") boolean operaFolioPostingEnabled) {
+                           @Value("${loft-integration.opera-folio-posting-enabled:false}") boolean operaFolioPostingEnabled) {
         this.chargeRepository = chargeRepository;
         this.syncEngine = syncEngine;
         this.operaFolioPostingEnabled = operaFolioPostingEnabled;

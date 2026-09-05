@@ -359,7 +359,7 @@ public class OperaV5DirectConnector implements PmsConnector {
                     // TODO: refine once we've looked at IND_ADJUSTMENT_YN /
                     // REVERSE_PAYMENT_TRX_NO to distinguish real voids from
                     // normal charges.
-                    event.setEventType(FolioEvent.EventType.CHARGE_POSTED);
+                    event.setEventType(FolioEvent.EventType.CHARGE);
 
                     LocalDateTime eventTime = rs.getTimestamp("UPDATE_DATE").toLocalDateTime();
                     event.setEventTimestamp(eventTime);
@@ -434,7 +434,7 @@ public class OperaV5DirectConnector implements PmsConnector {
      *    common Opera conventions, NOT confirmed against this specific
      *    install's configuration.
      *
-     * Gated behind tac-integration.opera-folio-posting-enabled in
+     * Gated behind loft-integration.opera-folio-posting-enabled in
      * application.yml (default false) for exactly this reason — see
      * BillingService, which checks that flag before ever calling this.
      */

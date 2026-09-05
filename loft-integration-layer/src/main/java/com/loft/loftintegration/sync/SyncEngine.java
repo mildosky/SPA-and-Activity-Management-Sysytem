@@ -4,6 +4,8 @@ import com.loft.loftintegration.config.PropertyProfile;
 import com.loft.loftintegration.connector.PmsConnectionException;
 import com.loft.loftintegration.connector.PmsConnector;
 import com.loft.loftintegration.directory.service.GuestDirectoryService;
+import com.loft.loftintegration.sync.consumer.FolioEventConsumer;
+import com.loft.loftintegration.sync.consumer.ReservationEventConsumer;
 import com.loft.loftintegration.sync.model.FolioEvent;
 import com.loft.loftintegration.sync.model.GuestProfileEvent;
 import com.loft.loftintegration.sync.model.ReservationEvent;
@@ -22,9 +24,9 @@ import java.util.concurrent.ConcurrentHashMap;
  * Guest profile events now do real work — see publish(GuestProfileEvent)
  * below — feeding GuestDirectoryService's local mirror, which the
  * webshop module matches against to link bookings to real Opera
- * guests. Reservation and folio events are still logging-only; wire
- * those to real consumers once something needs them (a booking module
- * consuming reservations, a POS module consuming folios).
+ * guests. Reservation and folio events are now also wired to real
+ * consumers (ReservationEventConsumer, FolioEventConsumer) that drive
+ * actual booking and POS operations based on PMS activity.
  *
  * @Component makes this a Spring-managed singleton bean, so
  * OperaSyncStartup and OperaPollingScheduler can both get the same
@@ -37,9 +39,15 @@ public class SyncEngine {
 
     private final Map<String, PmsConnector> connectorsByProperty = new ConcurrentHashMap<>();
     private final GuestDirectoryService guestDirectoryService;
+    private final ReservationEventConsumer reservationEventConsumer;
+    private final FolioEventConsumer folioEventConsumer;
 
-    public SyncEngine(GuestDirectoryService guestDirectoryService) {
+    public SyncEngine(GuestDirectoryService guestDirectoryService,
+                      ReservationEventConsumer reservationEventConsumer,
+                      FolioEventConsumer folioEventConsumer) {
         this.guestDirectoryService = guestDirectoryService;
+        this.reservationEventConsumer = reservationEventConsumer;
+        this.folioEventConsumer = folioEventConsumer;
     }
 
     /** Registers and connects a connector for one property. Call once per configured property at startup. */
@@ -106,7 +114,7 @@ public class SyncEngine {
 
     private void publish(ReservationEvent event) {
         log.info("Reservation event: {} {}", event.getChangeType(), event.getReservationId());
-        // TODO: hand off to a queue / booking module once it exists
+        reservationEventConsumer.consume(event);
     }
 
     private void publish(GuestProfileEvent event) {
@@ -116,6 +124,6 @@ public class SyncEngine {
 
     private void publish(FolioEvent event) {
         log.info("Folio event: {} {}", event.getEventType(), event.getFolioId());
-        // TODO: hand off to a queue / POS module once it exists
+        folioEventConsumer.consume(event);
     }
 }

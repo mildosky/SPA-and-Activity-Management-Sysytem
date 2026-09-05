@@ -21,4 +21,6 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
             + "AND b.status <> com.loft.loftintegration.booking.model.BookingStatus.CANCELLED "
             + "GROUP BY a.name")
     List<Object[]> countBookingsByActivityType(@Param("propertyCode") String propertyCode);
+
+    long countByActivityTypeAndGuestProfileId(com.loft.loftintegration.booking.model.ActivityType activityType, String guestProfileId);
 }

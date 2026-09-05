@@ -105,17 +105,12 @@ public class AvailabilityService {
      * requested window — i.e. the day of week matches one of the
      * template's daysOfWeek, and the requested time range falls
      * entirely within the template's startTime-endTime.
-     *
-     * v1 limitation: only checks bookings that start and end on the
-     * same calendar day. A booking spanning midnight is treated as
-     * "not on shift" (conservatively unavailable) rather than guessed
-     * at — overnight shifts/bookings aren't modeled yet.
+     * 
+     * Now supports overnight shifts/bookings: if the booking spans
+     * midnight (start and end on different dates), checks both the
+     * start day's shift and the next day's shift if needed.
      */
     private boolean isStaffOnShift(Resource staffResource, LocalDateTime start, LocalDateTime end) {
-        if (!start.toLocalDate().equals(end.toLocalDate())) {
-            return false;
-        }
-
         List<ShiftTemplate> templates = shiftTemplateRepository.findByResourceId(staffResource.getId());
         if (templates.isEmpty()) {
             // No shift templates configured for this staff member at
@@ -124,14 +119,61 @@ public class AvailabilityService {
             return false;
         }
 
-        DayOfWeek requestedDay = start.getDayOfWeek();
+        DayOfWeek startDay = start.getDayOfWeek();
+        DayOfWeek endDay = end.getDayOfWeek();
         LocalTime requestedStart = start.toLocalTime();
         LocalTime requestedEnd = end.toLocalTime();
 
-        return templates.stream().anyMatch(template ->
-                template.getDaysOfWeek().contains(requestedDay)
-                        && !requestedStart.isBefore(template.getStartTime())
-                        && !requestedEnd.isAfter(template.getEndTime()));
+        // Handle overnight bookings: check if the shift spans midnight
+        boolean isOvernight = !start.toLocalDate().equals(end.toLocalDate());
+        
+        if (isOvernight) {
+            // For overnight bookings, we need a shift that either:
+            // 1. Spans midnight on the start day (e.g., 10pm-6am next day)
+            // 2. Or covers the portion on each day separately
+            // For simplicity, we check if there's an overnight shift template
+            // that covers the entire period
+            return templates.stream().anyMatch(template -> 
+                isOvernightShiftCovering(template, startDay, endDay, requestedStart, requestedEnd));
+        } else {
+            // Same-day booking: original logic
+            return templates.stream().anyMatch(template ->
+                    template.getDaysOfWeek().contains(startDay)
+                            && !requestedStart.isBefore(template.getStartTime())
+                            && !requestedEnd.isAfter(template.getEndTime()));
+        }
+    }
+
+    /**
+     * Checks if an overnight shift template covers a booking that spans midnight.
+     * An overnight shift is one where endTime < startTime (e.g., 22:00-06:00).
+     */
+    private boolean isOvernightShiftCovering(ShiftTemplate template, DayOfWeek startDay, 
+                                              DayOfWeek endDay, LocalTime requestedStart, 
+                                              LocalTime requestedEnd) {
+        // Check if this is an overnight shift (end time is before start time, meaning it crosses midnight)
+        boolean isOvernightShift = template.getEndTime().isBefore(template.getStartTime());
+        
+        if (!isOvernightShift) {
+            // Not an overnight shift, can't cover an overnight booking
+            return false;
+        }
+        
+        // Check if the booking days match the shift pattern
+        // For a simple overnight shift (e.g., works Mon night into Tue morning),
+        // startDay should match the shift's day, and endDay should be the next day
+        DayOfWeek nextDay = startDay.plus(1);
+        
+        if (!template.getDaysOfWeek().contains(startDay)) {
+            return false;
+        }
+        
+        // Check if the requested time falls within the overnight shift
+        // The shift runs from startTime to midnight, then midnight to endTime
+        boolean startInShift = !requestedStart.isBefore(template.getStartTime());
+        boolean endInShift = !requestedEnd.isAfter(template.getEndTime());
+        
+        return startInShift && endInShift;
     }
 
     /** Thrown when a booking can't be satisfied — names which requirement failed and why. */

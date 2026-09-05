@@ -37,7 +37,7 @@ loft-integration:
 
 logging:
   level:
-    com.loft.tacintegration: INFO
+    com.loft.loftintegration: INFO
 
 # Booking module's own database — separate from Opera's, file-based H2
 # for now so data survives restarts during development. Schema is now
@@ -59,7 +59,7 @@ logging:
 # migration file.
 spring:
   datasource:
-    url: jdbc:h2:file:./data/tacbooking
+    url: jdbc:h2:file:./data/loftbooking
     driver-class-name: org.h2.Driver
     username: sa
     password: ""

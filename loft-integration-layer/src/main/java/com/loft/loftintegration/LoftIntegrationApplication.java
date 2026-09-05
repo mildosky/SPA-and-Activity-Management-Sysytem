@@ -5,7 +5,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
 /**
- * Entry point for the TAC-style Opera PMS integration layer.
+ * Entry point for the Loft-style Opera PMS integration layer.
  *
  * This service is the first module of a larger spa/activity management
  * product. Its sole job at this stage is to normalize events coming out
@@ -18,9 +18,9 @@ import org.springframework.scheduling.annotation.EnableScheduling;
  */
 @SpringBootApplication
 @EnableScheduling
-public class TacIntegrationApplication {
+public class LoftIntegrationApplication {
 
     public static void main(String[] args) {
-        SpringApplication.run(TacIntegrationApplication.class, args);
+        SpringApplication.run(LoftIntegrationApplication.class, args);
     }
 }

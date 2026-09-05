@@ -17,7 +17,7 @@ import java.util.NoSuchElementException;
  * Finds bookable time slots for an ActivityType on a given date.
  *
  * Business hours come from application.yml
- * (tac-integration.business-hours.open-time/close-time), not hardcoded
+ * (loft-integration.business-hours.open-time/close-time), not hardcoded
  * in Java — but it's still ONE global setting for every property and
  * activity, not per-property. Real per-property (and possibly
  * per-activity) opening hours would need a genuine Property domain
@@ -39,8 +39,8 @@ public class AvailableSlotsService {
 
     public AvailableSlotsService(ActivityTypeRepository activityTypeRepository,
                                   AvailabilityService availabilityService,
-                                  @Value("${tac-integration.business-hours.open-time:09:00}") String openTimeStr,
-                                  @Value("${tac-integration.business-hours.close-time:18:00}") String closeTimeStr) {
+                                  @Value("${loft-integration.business-hours.open-time:09:00}") String openTimeStr,
+                                  @Value("${loft-integration.business-hours.close-time:18:00}") String closeTimeStr) {
         this.activityTypeRepository = activityTypeRepository;
         this.availabilityService = availabilityService;
         this.openTime = LocalTime.parse(openTimeStr);

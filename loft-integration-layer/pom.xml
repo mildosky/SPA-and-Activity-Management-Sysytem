@@ -5,11 +5,11 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.loft</groupId>
-    <artifactId>tac-integration-layer</artifactId>
+    <artifactId>loft-integration-layer</artifactId>
     <version>0.1.0-SNAPSHOT</version>
     <packaging>jar</packaging>
 
-    <name>TAC Integration Layer</name>
+    <name>Loft Integration Layer</name>
     <description>Opera PMS integration middleware — first module of a sellable spa/activity management product</description>
 
     <properties>

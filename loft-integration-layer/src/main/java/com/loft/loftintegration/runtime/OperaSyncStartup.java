@@ -37,7 +37,7 @@ public class OperaSyncStartup implements ApplicationRunner {
 
     public OperaSyncStartup(
             SyncEngine syncEngine,
-            @Value("${tac-integration.property-config-path}") String propertyConfigPath) {
+            @Value("${loft-integration.property-config-path}") String propertyConfigPath) {
         this.syncEngine = syncEngine;
         this.propertyConfigPath = propertyConfigPath;
     }

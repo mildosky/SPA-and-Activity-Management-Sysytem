@@ -12,7 +12,7 @@ import java.time.LocalDateTime;
  */
 public class FolioEvent {
 
-    public enum EventType { CHARGE_POSTED, CHARGE_VOIDED, FOLIO_CLOSED }
+    public enum EventType { CHARGE, CREDIT, PAYMENT }
 
     private String folioId;
     private String reservationId;

@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component;
 
 /**
  * Triggers SyncEngine.pollAll() on a fixed interval, configured via
- * tac-integration.poll-interval-seconds in application.yml (default 60s
+ * loft-integration.poll-interval-seconds in application.yml (default 60s
  * — see application.yml).
  *
  * fixedDelay (not fixedRate) is deliberate: waits for one poll cycle to
@@ -27,7 +27,7 @@ public class OperaPollingScheduler {
         this.syncEngine = syncEngine;
     }
 
-    @Scheduled(fixedDelayString = "${tac-integration.poll-interval-seconds}000")
+    @Scheduled(fixedDelayString = "${loft-integration.poll-interval-seconds}000")
     public void poll() {
         if (!syncEngine.hasRegisteredProperties()) {
             // Nothing registered yet (e.g. property-profile.yml missing) —
