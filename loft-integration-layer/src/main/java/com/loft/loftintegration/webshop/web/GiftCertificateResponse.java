@@ -18,7 +18,7 @@ public record GiftCertificateResponse(
     public static GiftCertificateResponse from(GiftCertificate certificate) {
         return new GiftCertificateResponse(
                 certificate.getCode(),
-                certificate.getAmount(),
+                certificate.getOriginalAmount(),
                 certificate.getCurrency(),
                 certificate.getRecipientName(),
                 certificate.getRecipientEmail(),

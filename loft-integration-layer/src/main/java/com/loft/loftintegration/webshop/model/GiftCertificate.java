@@ -5,13 +5,11 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 /**
- * A gift certificate. v1 deliberately keeps this simple — full-value,
- * single-use (REDEEMED marks the whole thing spent, no partial-balance
- * tracking). A real product would likely want partial redemption
- * (spend part of the value, keep a remaining balance) — noted here as
- * a TODO rather than guessed at, since that's a real design decision
- * (does redemption happen through this system, through Opera's folio,
- * both?) that needs answering before building it, not assuming.
+ * A gift certificate with support for partial-balance redemption.
+ * 
+ * Unlike v1's simple single-use model, this tracks a remaining balance
+ * that can be spent across multiple redemptions until fully depleted.
+ * Each redemption creates a GiftCertificateRedemption record for audit.
  */
 @Entity
 @Table(name = "gift_certificate", uniqueConstraints = @UniqueConstraint(columnNames = "code"))
@@ -29,7 +27,11 @@ public class GiftCertificate {
     private String code;
 
     @Column(nullable = false, precision = 19, scale = 2)
-    private BigDecimal amount;
+    private BigDecimal originalAmount;
+
+    /** Current remaining balance - decreases with each partial redemption */
+    @Column(nullable = false, precision = 19, scale = 2)
+    private BigDecimal remainingBalance;
 
     @Column(nullable = false)
     private String currency;
@@ -55,7 +57,7 @@ public class GiftCertificate {
     private LocalDateTime expiresAt;
 
     @Column(nullable = true)
-    private LocalDateTime redeemedAt;
+    private LocalDateTime redeemedAt;  // When fully redeemed (balance = 0)
 
     protected GiftCertificate() {
         // JPA
@@ -66,7 +68,8 @@ public class GiftCertificate {
                             LocalDateTime expiresAt) {
         this.propertyCode = propertyCode;
         this.code = code;
-        this.amount = amount;
+        this.originalAmount = amount;
+        this.remainingBalance = amount;
         this.currency = currency;
         this.purchaser = purchaser;
         this.recipientName = recipientName;
@@ -74,10 +77,40 @@ public class GiftCertificate {
         this.expiresAt = expiresAt;
     }
 
+    /**
+     * Redeems a portion or all of the certificate's remaining balance.
+     * 
+     * @param amountToRedeem the amount to redeem
+     * @throws IllegalStateException if certificate is not ACTIVE, expired, or insufficient balance
+     */
+    public void redeem(BigDecimal amountToRedeem) {
+        if (this.status != GiftCertificateStatus.ACTIVE) {
+            throw new IllegalStateException(
+                    "Certificate " + code + " is " + status + ", not ACTIVE — cannot redeem.");
+        }
+        if (this.expiresAt != null && this.expiresAt.isBefore(LocalDateTime.now())) {
+            this.setStatus(GiftCertificateStatus.EXPIRED);
+            throw new IllegalStateException("Certificate " + code + " expired on " + this.expiresAt);
+        }
+        if (amountToRedeem.compareTo(this.remainingBalance) > 0) {
+            throw new IllegalStateException(
+                    "Redemption amount " + amountToRedeem + " exceeds remaining balance " + this.remainingBalance);
+        }
+
+        this.remainingBalance = this.remainingBalance.subtract(amountToRedeem);
+        
+        // If fully redeemed, mark as REDEEMED
+        if (this.remainingBalance.compareTo(BigDecimal.ZERO) == 0) {
+            this.status = GiftCertificateStatus.REDEEMED;
+            this.redeemedAt = LocalDateTime.now();
+        }
+    }
+
     public Long getId() { return id; }
     public String getPropertyCode() { return propertyCode; }
     public String getCode() { return code; }
-    public BigDecimal getAmount() { return amount; }
+    public BigDecimal getOriginalAmount() { return originalAmount; }
+    public BigDecimal getRemainingBalance() { return remainingBalance; }
     public String getCurrency() { return currency; }
     public Customer getPurchaser() { return purchaser; }
     public String getRecipientName() { return recipientName; }

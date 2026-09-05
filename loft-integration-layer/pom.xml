@@ -82,6 +82,12 @@
             <artifactId>spring-boot-starter-webflux</artifactId>
         </dependency>
 
+        <!-- Thymeleaf template engine for server-rendered UIs (admin, kiosk) -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-thymeleaf</artifactId>
+        </dependency>
+
         <!-- Booking module's own database (separate from Opera's) —
              H2 file-based for now. Swapping to Postgres later is a
              pom.xml dependency swap + application.yml datasource change,

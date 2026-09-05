@@ -121,7 +121,7 @@ public class RecurringBookingService {
                     );
                     createdBookings.add(booking);
                     log.info("Materialized booking {} from recurring pattern {}", booking.getId(), recurringBookingId);
-                } catch (InsufficientAvailabilityException e) {
+                } catch (AvailabilityService.InsufficientAvailabilityException e) {
                     log.warn("Could not materialize booking for {}: {}", currentDate, e.getMessage());
                     // Continue with next date even if this one fails
                 }

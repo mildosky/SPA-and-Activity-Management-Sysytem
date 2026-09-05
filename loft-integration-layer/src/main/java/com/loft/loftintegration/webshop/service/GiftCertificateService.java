@@ -54,29 +54,25 @@ public class GiftCertificateService {
     }
 
     /**
-     * Redeems a certificate — full value, single use (see class doc on
-     * GiftCertificate for why partial-balance redemption isn't built
-     * yet). Fails if the certificate isn't ACTIVE (not paid yet,
-     * already redeemed, expired, or cancelled) or has passed its
-     * expiry date.
+     * Redeems a certificate for a specific amount (partial-balance support).
+     * Fails if the certificate isn't ACTIVE (not paid yet, already fully redeemed,
+     * expired, or cancelled) or has passed its expiry date, or if the redemption
+     * amount exceeds the remaining balance.
+     */
+    @Transactional
+    public GiftCertificate redeem(String code, BigDecimal amountToRedeem) {
+        GiftCertificate certificate = findByCode(code);
+        certificate.redeem(amountToRedeem);  // Uses the new partial-balance method
+        return giftCertificateRepository.save(certificate);
+    }
+
+    /**
+     * Legacy full-redemption method for backwards compatibility - redeems the entire remaining balance.
      */
     @Transactional
     public GiftCertificate redeem(String code) {
         GiftCertificate certificate = findByCode(code);
-
-        if (certificate.getStatus() != GiftCertificateStatus.ACTIVE) {
-            throw new IllegalStateException(
-                    "Certificate " + code + " is " + certificate.getStatus() + ", not ACTIVE — cannot redeem.");
-        }
-        if (certificate.getExpiresAt() != null && certificate.getExpiresAt().isBefore(LocalDateTime.now())) {
-            certificate.setStatus(GiftCertificateStatus.EXPIRED);
-            giftCertificateRepository.save(certificate);
-            throw new IllegalStateException("Certificate " + code + " expired on " + certificate.getExpiresAt());
-        }
-
-        certificate.setStatus(GiftCertificateStatus.REDEEMED);
-        certificate.setRedeemedAt(LocalDateTime.now());
-        return giftCertificateRepository.save(certificate);
+        return redeem(code, certificate.getRemainingBalance());
     }
 
     private GiftCertificate findByCode(String code) {

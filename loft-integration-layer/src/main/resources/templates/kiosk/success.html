@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${pageTitle}">Booking Confirmed - Loft Kiosk</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; color: #333; display: flex; align-items: center; justify-content: center; }
+        .card { background: white; border-radius: 12px; padding: 3rem; box-shadow: 0 10px 30px rgba(0,0,0,0.2); text-align: center; max-width: 500px; }
+        .success-icon { width: 80px; height: 80px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 2rem; font-size: 2.5rem; }
+        h1 { color: #667eea; margin-bottom: 1rem; }
+        .details { background: #f8f9fa; border-radius: 8px; padding: 1.5rem; margin: 2rem 0; text-align: left; }
+        .details p { margin-bottom: 0.75rem; color: #666; }
+        .details strong { color: #333; }
+        .btn { display: inline-block; padding: 1rem 2rem; border-radius: 8px; text-decoration: none; font-weight: 600; transition: all 0.2s; border: none; cursor: pointer; font-size: 1rem; margin: 0.5rem; }
+        .btn-primary { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; }
+        .btn-primary:hover { transform: scale(1.05); }
+        .btn-secondary { background: #f0f0f0; color: #333; }
+        .btn-secondary:hover { background: #e0e0e0; }
+        .auto-redirect { margin-top: 2rem; color: #999; font-size: 0.875rem; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <div class="success-icon">✓</div>
+        <h1>Booking Confirmed!</h1>
+        
+        <div class="details">
+            <p><strong>Guest:</strong> <span th:text="${guestName}">John Doe</span></p>
+            <p><strong>Activity:</strong> <span th:text="${activityName}">60-Minute Massage</span></p>
+            <p><strong>Time:</strong> <span th:text="${#temporals.format(bookingTime, 'EEE, MMM d, yyyy \'at\' h:mm a')}">Mon, Jan 1, 2024 at 10:00 AM</span></p>
+        </div>
+        
+        <p style="color: #666; margin-bottom: 2rem;">
+            We look forward to seeing you! Please arrive 15 minutes early.
+        </p>
+        
+        <div>
+            <a href="/kiosk" class="btn btn-primary">New Booking</a>
+            <a href="/" class="btn btn-secondary">Back to Guest Page</a>
+        </div>
+        
+        <div class="auto-redirect">
+            Returning to home in <span id="countdown">10</span> seconds...
+        </div>
+    </div>
+    
+    <script>
+        let seconds = 10;
+        const countdown = document.getElementById('countdown');
+        const timer = setInterval(() => {
+            seconds--;
+            countdown.textContent = seconds;
+            if (seconds <= 0) {
+                clearInterval(timer);
+                window.location.href = '/kiosk';
+            }
+        }, 1000);
+    </script>
+</body>
+</html>
