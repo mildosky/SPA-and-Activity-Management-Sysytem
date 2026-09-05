@@ -1,0 +1,26 @@
+# Example property-profile.yml
+# Copy this to ./config/property-profile.yml on each install and fill in
+# real connection details. One entry per property this install serves.
+#
+# Credentials: any connectionSettings value can be ${ENV_VAR_NAME}
+# instead of a literal — resolved from the real environment at startup
+# (see PropertyConfigLoader). Recommended for username/password so
+# nothing sensitive lives in this file or gets committed to version
+# control. A literal value (like host/port below) is still fine for
+# genuinely non-sensitive settings — this is opt-in per field, not
+# forced. If a referenced env var isn't set, the app logs a clear error
+# naming exactly which variable is missing and fails that property
+# (not the whole app) rather than silently connecting with a broken
+# credential.
+
+properties:
+  - propertyCode: TGL
+    propertyName: "The George Lagos"
+    connectorId: opera-v5-direct
+    licenseKey: "LOFT-TGL-YYYYMMDD-XXXXXXXXXXXX"
+    connectionSettings:
+      host: "opera-db.internal"
+      port: "1521"
+      sid: "OPERA"
+      username: "${OPERA_DB_USERNAME}"
+      password: "${OPERA_DB_PASSWORD}"

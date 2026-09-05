@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.loft</groupId>
+    <artifactId>tac-integration-layer</artifactId>
+    <version>0.1.0-SNAPSHOT</version>
+    <packaging>jar</packaging>
+
+    <name>TAC Integration Layer</name>
+    <description>Opera PMS integration middleware — first module of a sellable spa/activity management product</description>
+
+    <properties>
+        <maven.compiler.source>17</maven.compiler.source>
+        <maven.compiler.target>17</maven.compiler.target>
+        <!-- Without this, Spring can't resolve unnamed @PathVariable/
+             @RequestParam args via reflection at runtime — hit this for
+             real (IllegalArgumentException: "Name for argument of type
+             [java.lang.Long] not specified... Ensure that the compiler
+             uses the '-parameters' flag") even though every @PathVariable
+             is now explicitly named as a second line of defense. This
+             flag matters most for IntelliJ's own compiler, which doesn't
+             always inherit Maven's settings unless "delegate build to
+             Maven" is on — explicit @PathVariable names don't depend on
+             this at all, but it's cheap insurance for anything added
+             later that forgets to name one. -->
+        <maven.compiler.parameters>true</maven.compiler.parameters>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <spring.boot.version>3.3.2</spring.boot.version>
+    </properties>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-dependencies</artifactId>
+                <version>${spring.boot.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+    <dependencies>
+        <!-- Core Spring Boot -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+
+        <!-- Config: YAML property profiles -->
+        <dependency>
+            <groupId>org.yaml</groupId>
+            <artifactId>snakeyaml</artifactId>
+            <version>2.2</version>
+        </dependency>
+
+        <!-- Oracle JDBC driver for Opera v5 direct DB connector.
+             Deliberately ojdbc6 11.2.0.4, NOT the newer ojdbc11 — this
+             property's Opera install runs Oracle Database 11g (2011).
+             Newer driver versions (12c+) send login/handshake parameters
+             this old a database can't parse, which surfaces as ORA-12705
+             during authentication even though the DB itself is healthy.
+             If a future customer's Opera install runs a newer Oracle
+             version, this may need to become a per-property driver
+             choice rather than one fixed version. -->
+        <dependency>
+            <groupId>com.oracle.database.jdbc</groupId>
+            <artifactId>ojdbc6</artifactId>
+            <version>11.2.0.4</version>
+        </dependency>
+
+        <!-- HTTP client for future OHIP REST connector -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-webflux</artifactId>
+        </dependency>
+
+        <!-- Booking module's own database (separate from Opera's) —
+             H2 file-based for now. Swapping to Postgres later is a
+             pom.xml dependency swap + application.yml datasource change,
+             not a code change, since we're using standard JPA. -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-jpa</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.h2database</groupId>
+            <artifactId>h2</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+        <!-- Flyway: replaces ddl-auto: update with real, versioned
+             migrations. Directly fixes the "schema change means wipe
+             the whole dev database" problem hit repeatedly during
+             development (lounger resources, shift templates, retail
+             items, and the price column all needed a wipe or a
+             separate-guard workaround under ddl-auto: update).
+             H2 support is built into flyway-core directly — unlike
+             Postgres/MySQL/SQL Server, no separate flyway-database-*
+             module is needed for H2. -->
+        <dependency>
+            <groupId>org.flywaydb</groupId>
+            <artifactId>flyway-core</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+                <version>${spring.boot.version}</version>
+            </plugin>
+        </plugins>
+    </build>
+</project>
