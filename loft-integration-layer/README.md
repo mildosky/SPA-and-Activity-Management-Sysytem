@@ -53,11 +53,11 @@ special-cased code per activity type:
   (massage, tennis, golf, lounger) for property `TGL` on first startup,
   so the flow can be tested immediately without hand-written SQL.
   **Gotcha (hit this for real once already):** it only seeds when
-  `TGL` has zero `ActivityType` rows. Since H2 is file-based, that
-  guard stays satisfied forever after the first run — if you add a
-  new seeded activity/resource to this class later, it will NOT appear
-  in an existing database. Delete `./data/loftbooking.mv.db` (app must
-  be stopped first) to force a fresh reseed when that happens.
+  `TGL` has zero `ActivityType` rows. With PostgreSQL, this guard stays
+  satisfied forever after the first run — if you add a new seeded
+  activity/resource to this class later, it will NOT appear in an
+  existing database. Drop and recreate the database to force a fresh
+  reseed when that happens.
 - **`ShiftTemplate`** — a recurring weekly work pattern for a `STAFF`
   resource ("works Mon-Fri, 9am-5pm"). Matches Loft's own "shift
   templates" terminology directly — template-based, not per-date rows,
@@ -76,24 +76,42 @@ special-cased code per activity type:
   itself, not `BookingSeedData`'s), so it seeds correctly on an
   existing database without needing a wipe — just rebuild and restart.
 
-Has its own database (H2, file-based, `./data/loftbooking`) —
-completely separate from Opera's Oracle DB. **Schema is now managed
-by Flyway** (`src/main/resources/db/migration/V1__initial_schema.sql`)
-instead of `ddl-auto: update` — this directly fixes the repeated
-"schema change means wipe the whole dev database" problem hit during
-development (loungers, shift templates, retail items, and the price
-column each needed a wipe or a workaround). Future schema changes are
-new migration files (`V2__...`, `V3__...`), applied automatically on
-startup — not silent auto-alteration. `ddl-auto: validate` stays on as
-a safety net: if a migration ever doesn't quite match what an `@Entity`
-expects, the app fails loudly at startup naming the exact mismatch,
-rather than running against a subtly wrong schema.
+Has its own database (Oracle Database for production, matching Opera PMS
+architecture) — completely separate from Opera's Oracle DB. **Schema is
+now managed by Flyway** (`src/main/resources/db/migration/V1__initial_schema.sql`,
+`V2__recurring_booking_support.sql`) instead of `ddl-auto: update` —
+this directly fixes the repeated "schema change means wipe the whole dev
+database" problem hit during development (loungers, shift templates,
+retail items, and the price column each needed a wipe or a workaround).
+Future schema changes are new migration files (`V3__...`, `V4__...`),
+applied automatically on startup — not silent auto-alteration.
+`ddl-auto: validate` stays on as a safety net: if a migration ever
+doesn't quite match what an `@Entity` expects, the app fails loudly at
+startup naming the exact mismatch, rather than running against a subtly
+wrong schema.
 
-**One more required wipe, then this problem is solved for good:**
-since your existing database predates Flyway managing it, you need to
-delete `./data/loftbooking.mv.db` one more time (same as the price
-column change) so Flyway can create the schema from a clean slate.
-After this, schema changes go through migration files instead.
+**Database Configuration:**
+The application now uses Oracle Database for production deployments, matching
+Opera PMS architecture. Configure your database connection via environment variables:
+- `LOFT_DB_USERNAME` - Database username (default: loftuser)
+- `LOFT_DB_PASSWORD` - Database password (default: loftpassword)
+- Update `application.yml` with your Oracle host/port/service name
+
+For development/testing, you can use a local Oracle Database instance.
+Create a user and schema for the application:
+
+```sql
+-- Connect as SYSDBA or a privileged user
+CREATE USER loftuser IDENTIFIED BY loftpassword;
+GRANT CONNECT, RESOURCE TO loftuser;
+GRANT UNLIMITED TABLESPACE TO loftuser;
+
+-- The database name is your Oracle service name (e.g., ORCL)
+-- Connection URL format: jdbc:oracle:thin:@localhost:1521/ORCL
+```
+
+After setting up the database, the Flyway migrations will run
+automatically on first startup to create the schema.
 
 ### Testing it
 
