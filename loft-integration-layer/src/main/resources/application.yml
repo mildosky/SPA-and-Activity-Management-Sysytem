@@ -39,16 +39,17 @@ logging:
   level:
     com.loft.loftintegration: INFO
 
-# Booking module's own database — separate from Opera's, file-based H2
-# for now so data survives restarts during development. Schema is now
-# managed by Flyway (see src/main/resources/db/migration/) instead of
-# ddl-auto: update — directly fixes the "any schema change means wipe
-# the whole dev database" problem hit repeatedly during development
-# (lounger resources, shift templates, retail items, and the price
-# column all needed a wipe or a separate-guard seed-data workaround
-# under ddl-auto: update). Future schema changes are new migration
-# files (V2__..., V3__...), not silent auto-alterations — appropriate
-# for something that'll eventually hold a real customer's data.
+# Booking module's own database — separate from Opera's, Oracle Database
+# for production deployments, matching Opera PMS architecture. Replaces H2
+# file-based database which is not suitable for high-availability production.
+# Schema is managed by Flyway (see src/main/resources/db/migration/) instead
+# of ddl-auto: update — directly fixes the "any schema change means wipe
+# the whole dev database" problem hit repeatedly during development (lounger
+# resources, shift templates, retail items, and the price column all needed
+# a wipe or a separate-guard seed-data workaround under ddl-auto: update).
+# Future schema changes are new migration files (V2__..., V3__...), not
+# silent auto-alterations — appropriate for something that'll eventually
+# hold a real customer's data.
 #
 # ddl-auto: validate (not none) is a deliberate safety net: Hibernate
 # checks the Flyway-created schema actually matches what the @Entity
@@ -57,16 +58,24 @@ logging:
 # a subtly wrong schema. If you ever see a "Schema-validation" error
 # at startup, that error names the exact mismatch to fix in the
 # migration file.
+#
+# DATABASE CONFIGURATION FOR PRODUCTION:
+# Replace the placeholder values below with your actual Oracle connection details.
+# Recommended: Use environment variables or external config for credentials in production.
 spring:
   datasource:
-    url: jdbc:h2:file:./data/loftbooking
-    driver-class-name: org.h2.Driver
-    username: sa
-    password: ""
+    url: jdbc:oracle:thin:@localhost:1521/ORCL
+    driver-class-name: oracle.jdbc.OracleDriver
+    username: ${LOFT_DB_USERNAME:loftuser}
+    password: ${LOFT_DB_PASSWORD:loftpassword}
   flyway:
     enabled: true
   jpa:
     hibernate:
       ddl-auto: validate
     open-in-view: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.OracleDialect
+        format_sql: true
 

@@ -95,18 +95,31 @@ public class KioskController {
                 .orElseThrow(() -> new IllegalArgumentException("Activity not found"));
             
             LocalDateTime startDateTime = LocalDateTime.parse(dateTime);
+            LocalDateTime endDateTime = startDateTime.plusMinutes(activity.getDefaultDurationMinutes());
             
-            CreateBookingRequest request = new CreateBookingRequest();
-            request.setPropertyCode("LOFT");
-            request.setActivityTypeId(activityId);
-            request.setStartTime(startDateTime);
-            request.setEndTime(startDateTime.plusMinutes(activity.getDefaultDurationMinutes()));
-            request.setGuestName(guestName);
-            request.setGuestEmail(guestEmail != null ? guestEmail : "kiosk@loft.com");
-            request.setGuestPhone(guestPhone);
-            request.setNotes("Kiosk booking");
+            // Use the with-args constructor for CreateBookingRequest record
+            CreateBookingRequest request = new CreateBookingRequest(
+                "LOFT",
+                activityId,
+                null,  // guestProfileId - not used for kiosk bookings
+                null,  // operaReservationId - not used for kiosk bookings
+                startDateTime,
+                endDateTime,
+                guestName,
+                guestEmail != null ? guestEmail : "kiosk@loft.com",
+                guestPhone,
+                "Kiosk booking"
+            );
             
-            bookingService.createBooking(request);
+            // Call the appropriate createBooking method
+            bookingService.createBooking(
+                request.propertyCode(),
+                request.activityTypeId(),
+                request.guestProfileId(),
+                request.operaReservationId(),
+                request.startTime(),
+                request.endTime()
+            );
             
             redirectAttributes.addFlashAttribute("successMessage", "Booking confirmed!");
             redirectAttributes.addFlashAttribute("guestName", guestName);
