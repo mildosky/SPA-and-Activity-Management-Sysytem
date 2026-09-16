@@ -1,0 +1,171 @@
+-- V1: initial schema, covering the full state of the booking core,
+-- webshop, directory, and pos modules as of the point Flyway replaced
+-- ddl-auto: update.
+--
+-- Written by hand against the exact JPA entity definitions (see each
+-- entity's @Column annotations) rather than exported from a live
+-- Hibernate run — every BigDecimal column below is explicitly
+-- precision=19,scale=2 in the entity too, specifically so there's no
+-- ambiguity between what Hibernate expects and what this migration
+-- creates. ddl-auto is set to `validate` (see application.yml) as a
+-- safety net: if anything here doesn't match what Hibernate expects,
+-- the app will fail loudly at startup with a specific column/type
+-- mismatch, not silently misbehave.
+--
+-- PostgreSQL-compatible syntax: uses BIGSERIAL for identity columns
+-- (standard practice for PostgreSQL), TIMESTAMP without timezone
+-- (application handles timezone conversion), and DECIMAL for monetary
+-- values with explicit precision.
+
+-- ============ booking module ============
+
+CREATE TABLE activity_type (
+    id BIGSERIAL PRIMARY KEY,
+    property_code VARCHAR(255) NOT NULL,
+    name VARCHAR(255) NOT NULL,
+    category VARCHAR(255) NOT NULL,
+    default_duration_minutes INT NOT NULL,
+    price DECIMAL(19,2) NOT NULL,
+    currency VARCHAR(255) NOT NULL
+);
+
+CREATE TABLE activity_type_requirement (
+    activity_type_id BIGINT NOT NULL,
+    role VARCHAR(255),
+    resource_type VARCHAR(255),
+    quantity INT NOT NULL,
+    CONSTRAINT fk_activity_type_requirement_activity_type
+        FOREIGN KEY (activity_type_id) REFERENCES activity_type(id)
+);
+
+CREATE TABLE booking_resource (
+    id BIGSERIAL PRIMARY KEY,
+    property_code VARCHAR(255) NOT NULL,
+    resource_type VARCHAR(255) NOT NULL,
+    name VARCHAR(255) NOT NULL,
+    active BOOLEAN NOT NULL
+);
+
+CREATE TABLE booking (
+    id BIGSERIAL PRIMARY KEY,
+    property_code VARCHAR(255) NOT NULL,
+    activity_type_id BIGINT NOT NULL,
+    guest_profile_id VARCHAR(255),
+    opera_reservation_id VARCHAR(255),
+    start_time TIMESTAMP NOT NULL,
+    end_time TIMESTAMP NOT NULL,
+    status VARCHAR(255) NOT NULL,
+    created_at TIMESTAMP NOT NULL,
+    CONSTRAINT fk_booking_activity_type FOREIGN KEY (activity_type_id) REFERENCES activity_type(id)
+);
+
+CREATE TABLE resource_assignment (
+    id BIGSERIAL PRIMARY KEY,
+    booking_id BIGINT NOT NULL,
+    resource_id BIGINT NOT NULL,
+    role VARCHAR(255) NOT NULL,
+    CONSTRAINT fk_resource_assignment_booking FOREIGN KEY (booking_id) REFERENCES booking(id),
+    CONSTRAINT fk_resource_assignment_resource FOREIGN KEY (resource_id) REFERENCES booking_resource(id)
+);
+
+CREATE TABLE shift_template (
+    id BIGSERIAL PRIMARY KEY,
+    resource_id BIGINT NOT NULL,
+    name VARCHAR(255),
+    start_time TIME NOT NULL,
+    end_time TIME NOT NULL,
+    CONSTRAINT fk_shift_template_resource FOREIGN KEY (resource_id) REFERENCES booking_resource(id)
+);
+
+CREATE TABLE shift_template_days (
+    shift_template_id BIGINT NOT NULL,
+    day_of_week VARCHAR(255) NOT NULL,
+    CONSTRAINT fk_shift_template_days_shift_template
+        FOREIGN KEY (shift_template_id) REFERENCES shift_template(id)
+);
+
+-- ============ webshop module ============
+
+CREATE TABLE webshop_customer (
+    id BIGSERIAL PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    email VARCHAR(255) NOT NULL,
+    phone VARCHAR(255),
+    CONSTRAINT uq_webshop_customer_email UNIQUE (email)
+);
+
+CREATE TABLE gift_certificate (
+    id BIGSERIAL PRIMARY KEY,
+    property_code VARCHAR(255) NOT NULL,
+    code VARCHAR(255) NOT NULL,
+    amount DECIMAL(19,2) NOT NULL,
+    currency VARCHAR(255) NOT NULL,
+    purchaser_customer_id BIGINT NOT NULL,
+    recipient_name VARCHAR(255) NOT NULL,
+    recipient_email VARCHAR(255) NOT NULL,
+    status VARCHAR(255) NOT NULL,
+    issued_at TIMESTAMP NOT NULL,
+    expires_at TIMESTAMP,
+    redeemed_at TIMESTAMP,
+    CONSTRAINT uq_gift_certificate_code UNIQUE (code),
+    CONSTRAINT fk_gift_certificate_purchaser FOREIGN KEY (purchaser_customer_id) REFERENCES webshop_customer(id)
+);
+
+-- ============ directory module ============
+
+CREATE TABLE opera_guest_mirror (
+    id BIGSERIAL PRIMARY KEY,
+    opera_name_id VARCHAR(255) NOT NULL,
+    property_code VARCHAR(255) NOT NULL,
+    first_name VARCHAR(255),
+    last_name VARCHAR(255),
+    email VARCHAR(255),
+    phone VARCHAR(255),
+    last_synced_at TIMESTAMP NOT NULL,
+    CONSTRAINT uq_opera_guest_mirror_opera_name_id UNIQUE (opera_name_id)
+);
+
+-- ============ pos module ============
+
+CREATE TABLE retail_item (
+    id BIGSERIAL PRIMARY KEY,
+    property_code VARCHAR(255) NOT NULL,
+    name VARCHAR(255) NOT NULL,
+    price DECIMAL(19,2) NOT NULL,
+    currency VARCHAR(255) NOT NULL,
+    active BOOLEAN NOT NULL
+);
+
+CREATE TABLE pos_sale (
+    id BIGSERIAL PRIMARY KEY,
+    property_code VARCHAR(255) NOT NULL,
+    guest_profile_id VARCHAR(255),
+    opera_reservation_id VARCHAR(255),
+    currency VARCHAR(255) NOT NULL,
+    created_at TIMESTAMP NOT NULL
+);
+
+CREATE TABLE pos_sale_line_item (
+    id BIGSERIAL PRIMARY KEY,
+    sale_id BIGINT NOT NULL,
+    retail_item_id BIGINT NOT NULL,
+    quantity INT NOT NULL,
+    unit_price DECIMAL(19,2) NOT NULL,
+    CONSTRAINT fk_pos_sale_line_item_sale FOREIGN KEY (sale_id) REFERENCES pos_sale(id),
+    CONSTRAINT fk_pos_sale_line_item_retail_item FOREIGN KEY (retail_item_id) REFERENCES retail_item(id)
+);
+
+CREATE TABLE pos_charge (
+    id BIGSERIAL PRIMARY KEY,
+    property_code VARCHAR(255) NOT NULL,
+    guest_profile_id VARCHAR(255),
+    opera_reservation_id VARCHAR(255),
+    amount DECIMAL(19,2) NOT NULL,
+    currency VARCHAR(255) NOT NULL,
+    description VARCHAR(255) NOT NULL,
+    charge_type VARCHAR(255) NOT NULL,
+    source_id BIGINT NOT NULL,
+    status VARCHAR(255) NOT NULL,
+    created_at TIMESTAMP NOT NULL,
+    posted_at TIMESTAMP
+);

@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${pageTitle}">Select Date - Loft Kiosk</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; color: #333; }
+        .header { background: rgba(255,255,255,0.1); backdrop-filter: blur(10px); padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; }
+        .header h1, .header a { color: white; text-decoration: none; font-size: 1.5rem; }
+        .container { max-width: 800px; margin: 2rem auto; padding: 0 1rem; }
+        .card { background: white; border-radius: 12px; padding: 2rem; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
+        .activity-info { margin-bottom: 2rem; padding-bottom: 1.5rem; border-bottom: 1px solid #eee; }
+        .activity-info h2 { color: #667eea; margin-bottom: 0.5rem; }
+        .activity-info p { color: #666; }
+        .dates-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
+        .date-card { background: #f8f9fa; border-radius: 8px; padding: 1.5rem; text-align: center; cursor: pointer; transition: all 0.2s; border: 2px solid transparent; }
+        .date-card:hover { border-color: #667eea; background: #e8ecff; }
+        .date-card .day { font-size: 1.25rem; font-weight: 600; color: #333; }
+        .date-card .date { font-size: 0.875rem; color: #666; margin-top: 0.5rem; }
+        .times-section { display: none; }
+        .times-section.active { display: block; }
+        .times-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 0.75rem; margin-top: 1rem; }
+        .time-btn { background: white; border: 2px solid #667eea; color: #667eea; padding: 0.75rem; border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.2s; }
+        .time-btn:hover { background: #667eea; color: white; }
+        .selected-date { background: #667eea !important; color: white !important; }
+        .selected-date .day, .selected-date .date { color: white !important; }
+        .btn { display: inline-block; padding: 1rem 2rem; border-radius: 8px; text-decoration: none; font-weight: 600; transition: all 0.2s; border: none; cursor: pointer; font-size: 1rem; margin-top: 1rem; }
+        .btn-secondary { background: #f0f0f0; color: #333; }
+        .btn-secondary:hover { background: #e0e0e0; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <a href="/kiosk">← Back</a>
+        <h1>Select Date & Time</h1>
+    </div>
+    
+    <div class="container">
+        <div class="card">
+            <div class="activity-info">
+                <h2 th:text="${activity.name}">60-Minute Massage</h2>
+                <p><span th:text="${activity.defaultDurationMinutes}">60</span> minutes • <span th:text="${activity.price} + ' ' + ${activity.currency}">$100.00 USD</span></p>
+            </div>
+            
+            <h3 style="margin-bottom: 1rem;">Select a Date</h3>
+            <div class="dates-grid">
+                <div class="date-card" th:each="date : ${dates}" 
+                     th:data-date="${date.format(java.time.format.DateTimeFormatter.ISO_LOCAL_DATE)}"
+                     onclick="selectDate(this)">
+                    <div class="day" th:text="${date.format(dateFormat)}">Mon, Jan 1</div>
+                    <div class="date" th:text="${date.format(java.time.format.DateTimeFormatter.ofPattern('MMM d, yyyy'))}">Jan 1, 2024</div>
+                </div>
+            </div>
+            
+            <div id="timesSection" class="times-section">
+                <h3 style="margin-bottom: 1rem;">Available Times for <span id="selectedDateText"></span></h3>
+                <div class="times-grid">
+                    <button class="time-btn" th:each="hour : ${#numbers.sequence(9, 17)}" 
+                            th:onclick="'selectTime(\'' + ${#temporals.format(activity.defaultDurationMinutes <= 60 ? T(java.time.LocalDateTime).now().toLocalDate().plusDays(0).atStartOfDay().plusHours(hour).toLocalDate().atStartOfDay().plusHours(hour).format(java.time.format.DateTimeFormatter.ISO_LOCAL_DATE) : T(java.time.LocalDateTime).now().toLocalDate().atStartOfDay().plusHours(hour).toLocalDate().atStartOfDay().plusHours(hour).format(java.time.format.DateTimeFormatter.ISO_LOCAL_DATE))} + 'T' + ${String.format('%02d', hour)} + ':00\')'"
+                            th:text="${String.format('%02d', hour)} + ':00'">09:00</button>
+                </div>
+            </div>
+            
+            <a href="/kiosk" class="btn btn-secondary">Cancel</a>
+        </div>
+    </div>
+    
+    <script>
+        let selectedDate = null;
+        
+        function selectDate(element) {
+            document.querySelectorAll('.date-card').forEach(el => el.classList.remove('selected-date'));
+            element.classList.add('selected-date');
+            selectedDate = element.dataset.date;
+            document.getElementById('timesSection').classList.add('active');
+            document.getElementById('selectedDateText').textContent = element.querySelector('.day').textContent;
+        }
+        
+        function selectTime(time) {
+            const date = selectedDate;
+            window.location.href = '/kiosk/activity/[[${activity.id}]]/book?date=' + date + '&time=' + time.split('T')[1];
+        }
+    </script>
+</body>
+</html>

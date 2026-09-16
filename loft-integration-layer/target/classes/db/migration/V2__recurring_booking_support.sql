@@ -1,0 +1,25 @@
+-- V2: recurring booking support
+-- PostgreSQL-compatible syntax: uses BIGSERIAL for identity columns
+
+CREATE TABLE recurring_booking (
+    id BIGSERIAL PRIMARY KEY,
+    property_code VARCHAR(255) NOT NULL,
+    activity_type_id BIGINT NOT NULL,
+    guest_profile_id VARCHAR(255) NOT NULL,
+    opera_reservation_id VARCHAR(255),
+    start_date DATE NOT NULL,
+    end_date DATE,
+    start_time TIME NOT NULL,
+    duration_minutes INT NOT NULL,
+    total_occurrences INT,
+    status VARCHAR(255) NOT NULL,
+    created_at TIMESTAMP NOT NULL,
+    CONSTRAINT fk_recurring_booking_activity_type FOREIGN KEY (activity_type_id) REFERENCES activity_type(id)
+);
+
+CREATE TABLE recurring_booking_days (
+    recurring_booking_id BIGINT NOT NULL,
+    day_of_week VARCHAR(255) NOT NULL,
+    CONSTRAINT fk_recurring_booking_days_recurring_booking
+        FOREIGN KEY (recurring_booking_id) REFERENCES recurring_booking(id)
+);

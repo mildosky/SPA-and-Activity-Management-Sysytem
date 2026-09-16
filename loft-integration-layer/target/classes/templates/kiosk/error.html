@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${pageTitle}">Error - Loft Kiosk</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; color: #333; display: flex; align-items: center; justify-content: center; }
+        .card { background: white; border-radius: 12px; padding: 3rem; box-shadow: 0 10px 30px rgba(0,0,0,0.2); text-align: center; max-width: 500px; }
+        .error-icon { width: 80px; height: 80px; background: #e74c3c; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 2rem; font-size: 2.5rem; color: white; }
+        h1 { color: #e74c3c; margin-bottom: 1rem; }
+        .error-message { background: #f8d7da; border-radius: 8px; padding: 1.5rem; margin: 2rem 0; color: #721c24; }
+        .btn { display: inline-block; padding: 1rem 2rem; border-radius: 8px; text-decoration: none; font-weight: 600; transition: all 0.2s; border: none; cursor: pointer; font-size: 1rem; margin: 0.5rem; }
+        .btn-primary { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; }
+        .btn-primary:hover { transform: scale(1.05); }
+        .btn-secondary { background: #f0f0f0; color: #333; }
+        .btn-secondary:hover { background: #e0e0e0; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <div class="error-icon">!</div>
+        <h1>Booking Error</h1>
+        
+        <div class="error-message" th:text="${errorMessage}">
+            Could not complete booking: Activity not available
+        </div>
+        
+        <p style="color: #666; margin-bottom: 2rem;">
+            Please try again or contact reception for assistance.
+        </p>
+        
+        <div>
+            <a href="/kiosk" class="btn btn-primary">Try Again</a>
+            <a href="/" class="btn btn-secondary">Back to Guest Page</a>
+        </div>
+    </div>
+</body>
+</html>

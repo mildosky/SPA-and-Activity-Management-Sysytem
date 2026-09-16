@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${pageTitle}">Guest Information - Loft Kiosk</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; color: #333; }
+        .header { background: rgba(255,255,255,0.1); backdrop-filter: blur(10px); padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; }
+        .header h1, .header a { color: white; text-decoration: none; font-size: 1.5rem; }
+        .container { max-width: 600px; margin: 2rem auto; padding: 0 1rem; }
+        .card { background: white; border-radius: 12px; padding: 2rem; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
+        .booking-summary { background: #f8f9fa; border-radius: 8px; padding: 1.5rem; margin-bottom: 2rem; }
+        .booking-summary h3 { color: #667eea; margin-bottom: 1rem; }
+        .booking-summary p { margin-bottom: 0.5rem; color: #666; }
+        .booking-summary strong { color: #333; }
+        .form-group { margin-bottom: 1.5rem; }
+        label { display: block; margin-bottom: 0.5rem; font-weight: 500; color: #333; }
+        input { width: 100%; padding: 1rem; border: 2px solid #ddd; border-radius: 8px; font-size: 1rem; transition: border-color 0.2s; }
+        input:focus { outline: none; border-color: #667eea; }
+        .btn { display: inline-block; padding: 1rem 2rem; border-radius: 8px; text-decoration: none; font-weight: 600; transition: all 0.2s; border: none; cursor: pointer; font-size: 1rem; margin-right: 1rem; }
+        .btn-primary { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; }
+        .btn-primary:hover { transform: scale(1.05); }
+        .btn-secondary { background: #f0f0f0; color: #333; }
+        .btn-secondary:hover { background: #e0e0e0; }
+        .form-actions { margin-top: 2rem; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <a href="/kiosk">← Cancel</a>
+        <h1>Guest Information</h1>
+    </div>
+    
+    <div class="container">
+        <div class="card">
+            <div class="booking-summary">
+                <h3>Booking Summary</h3>
+                <p><strong>Activity:</strong> <span th:text="${activity.name}">60-Minute Massage</span></p>
+                <p><strong>Date & Time:</strong> <span th:text="${#temporals.format(dateTime, 'EEE, MMM d, yyyy \'at\' h:mm a')}">Mon, Jan 1, 2024 at 10:00 AM</span></p>
+                <p><strong>Duration:</strong> <span th:text="${activity.defaultDurationMinutes}">60</span> minutes</p>
+                <p><strong>Price:</strong> <span th:text="${activity.price} + ' ' + ${activity.currency}">$100.00 USD</span></p>
+            </div>
+            
+            <form th:action="@{/kiosk/confirm}" method="post">
+                <input type="hidden" name="activityId" th:value="${activity.id}" />
+                <input type="hidden" name="dateTime" th:value="${#temporals.format(dateTime, 'yyyy-MM-dd\'T\'HH:mm')}" />
+                
+                <div class="form-group">
+                    <label for="guestName">Full Name *</label>
+                    <input type="text" id="guestName" name="guestName" required placeholder="John Doe" />
+                </div>
+                
+                <div class="form-group">
+                    <label for="guestEmail">Email (optional)</label>
+                    <input type="email" id="guestEmail" name="guestEmail" placeholder="john@example.com" />
+                </div>
+                
+                <div class="form-group">
+                    <label for="guestPhone">Phone (optional)</label>
+                    <input type="tel" id="guestPhone" name="guestPhone" placeholder="+1 234 567 8900" />
+                </div>
+                
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">Confirm Booking</button>
+                    <a href="/kiosk" class="btn btn-secondary">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</body>
+</html>

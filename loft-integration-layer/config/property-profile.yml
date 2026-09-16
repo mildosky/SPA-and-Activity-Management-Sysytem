@@ -1,0 +1,19 @@
+# Real config for the confirmed-working test lab. Username/password
+# now come from environment variables (OPERA_DB_USERNAME,
+# OPERA_DB_PASSWORD) instead of plaintext — see PropertyConfigLoader
+# for how ${...} placeholders resolve. Set these before running:
+#   IntelliJ: Run Configuration -> Environment variables
+#   Windows:  set OPERA_DB_USERNAME=opera & set OPERA_DB_PASSWORD=opera
+#   macOS/Linux: export OPERA_DB_USERNAME=opera OPERA_DB_PASSWORD=opera
+
+properties:
+  - propertyCode: TGL
+    propertyName: "The George Lagos"
+    connectorId: opera-v5-direct
+    licenseKey: "LOFT-TGL-PLACEHOLDER"
+    connectionSettings:
+      host: "192.168.56.3"
+      port: "1521"
+      sid: "OPERA"
+      username: "${OPERA_DB_USERNAME}"
+      password: "${OPERA_DB_PASSWORD}"

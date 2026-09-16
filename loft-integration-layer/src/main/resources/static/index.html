@@ -1,0 +1,775 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The George Lagos — Spa &amp; Leisure</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,500&family=Public+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #16231F;
+    --lagoon: #0E3E3A;
+    --lagoon-light: #1B5A52;
+    --lagoon-pale: #E7EFEC;
+    --sand: #F3EBDB;
+    --sand-deep: #E6D6B4;
+    --brass: #A9803F;
+    --brass-light: #C7A468;
+    --hibiscus: #A63A46;
+    --hibiscus-pale: #F3DEDE;
+    --paper: #FBF7EE;
+    --line: rgba(22,35,31,0.14);
+    --shadow: 0 12px 32px rgba(14,62,58,0.14);
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--sand);
+    color: var(--ink);
+    font-family: 'Public Sans', -apple-system, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .mono { font-family: 'IBM Plex Mono', monospace; }
+
+  header.top {
+    background: var(--lagoon);
+    color: var(--sand);
+    padding: 28px 24px 22px;
+    text-align: center;
+    border-bottom: 3px solid var(--brass);
+  }
+
+  header.top .hotel-name {
+    font-family: 'Fraunces', serif;
+    font-weight: 600;
+    font-size: clamp(28px, 5vw, 40px);
+    letter-spacing: 0.01em;
+    margin: 0;
+  }
+
+  header.top .subtitle {
+    font-family: 'IBM Plex Mono', monospace;
+    text-transform: uppercase;
+    letter-spacing: 0.28em;
+    font-size: 11px;
+    color: var(--brass-light);
+    margin-top: 8px;
+  }
+
+  main {
+    max-width: 920px;
+    margin: 0 auto;
+    padding: 40px 20px 100px;
+  }
+
+  section.intro {
+    text-align: center;
+    margin-bottom: 40px;
+  }
+
+  section.intro h1 {
+    font-family: 'Fraunces', serif;
+    font-weight: 500;
+    font-style: italic;
+    font-size: clamp(22px, 4vw, 30px);
+    color: var(--lagoon);
+    margin: 0 0 10px;
+  }
+
+  section.intro p {
+    color: rgba(22,35,31,0.65);
+    max-width: 480px;
+    margin: 0 auto;
+    line-height: 1.5;
+  }
+
+  .menu-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 16px;
+    margin-bottom: 48px;
+  }
+
+  .menu-card {
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    padding: 22px 22px 20px;
+    cursor: pointer;
+    transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+    position: relative;
+  }
+
+  .menu-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow);
+    border-color: var(--brass-light);
+  }
+
+  .menu-card.selected {
+    border-color: var(--brass);
+    box-shadow: var(--shadow);
+  }
+
+  .menu-card .cat-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--brass);
+    margin-bottom: 10px;
+  }
+
+  .menu-card h3 {
+    font-family: 'Fraunces', serif;
+    font-weight: 600;
+    font-size: 19px;
+    margin: 0 0 12px;
+    color: var(--lagoon);
+    line-height: 1.25;
+  }
+
+  .menu-card .meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13px;
+    color: rgba(22,35,31,0.6);
+    border-top: 1px dashed var(--line);
+    padding-top: 12px;
+  }
+
+  .menu-card .price {
+    color: var(--lagoon);
+    font-weight: 500;
+    font-size: 15px;
+  }
+
+  section.booking-panel {
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    padding: 28px;
+    margin-bottom: 32px;
+    display: none;
+  }
+
+  section.booking-panel.visible { display: block; }
+
+  section.booking-panel h2 {
+    font-family: 'Fraunces', serif;
+    font-size: 21px;
+    color: var(--lagoon);
+    margin: 0 0 4px;
+  }
+
+  section.booking-panel .selected-sub {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    color: var(--brass);
+    margin-bottom: 20px;
+  }
+
+  input[type="date"] {
+    font-family: 'IBM Plex Mono', monospace;
+    padding: 9px 12px;
+    border: 1px solid var(--line);
+    border-radius: 3px;
+    background: white;
+    font-size: 14px;
+    color: var(--ink);
+  }
+
+  .slots {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 16px;
+  }
+
+  .slot-chip {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13px;
+    padding: 8px 14px;
+    border: 1px solid var(--lagoon);
+    border-radius: 999px;
+    background: white;
+    color: var(--lagoon);
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease;
+  }
+
+  .slot-chip:hover { background: var(--lagoon-pale); }
+
+  .slot-chip.selected {
+    background: var(--lagoon);
+    color: var(--sand);
+  }
+
+  .slots-empty {
+    font-size: 13px;
+    color: rgba(22,35,31,0.5);
+    margin-top: 14px;
+    font-style: italic;
+  }
+
+  /* The reservation ticket — signature element. A perforated stub,
+     styled like an actual printed spa reservation chit, not a generic
+     card, appearing once a guest picks a real slot. */
+  .ticket {
+    display: none;
+    margin-top: 26px;
+    background: var(--lagoon);
+    color: var(--sand);
+    border-radius: 4px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .ticket.visible { display: block; }
+
+  .ticket-top {
+    position: relative;
+    padding: 22px 26px 30px;
+  }
+
+  .ticket-notches {
+    position: absolute;
+    bottom: -9px;
+    left: -9px;
+    right: -9px;
+    height: 18px;
+    background:
+      radial-gradient(circle, var(--sand) 9px, transparent 9.5px) left / 18px 18px repeat-x,
+      radial-gradient(circle, var(--sand) 9px, transparent 9.5px) right / 18px 18px repeat-x;
+    pointer-events: none;
+  }
+
+  .ticket-bottom {
+    padding: 30px 26px 22px;
+    border-top: 1px dashed rgba(243,235,219,0.3);
+  }
+
+  .ticket-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--brass-light);
+    margin-bottom: 6px;
+  }
+
+  .ticket-activity {
+    font-family: 'Fraunces', serif;
+    font-weight: 600;
+    font-size: 24px;
+    margin: 0 0 14px;
+  }
+
+  .ticket-row {
+    display: flex;
+    justify-content: space-between;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13px;
+    padding: 5px 0;
+    color: rgba(243,235,219,0.85);
+  }
+
+  .ticket-row strong {
+    color: var(--sand);
+    font-weight: 500;
+  }
+
+  form.guest-form {
+    display: grid;
+    gap: 12px;
+  }
+
+  form.guest-form label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--brass-light);
+    display: block;
+    margin-bottom: 5px;
+  }
+
+  form.guest-form input {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid rgba(243,235,219,0.3);
+    border-radius: 3px;
+    background: rgba(251,247,238,0.08);
+    color: var(--sand);
+    font-family: 'Public Sans', sans-serif;
+    font-size: 14px;
+  }
+
+  form.guest-form input::placeholder { color: rgba(243,235,219,0.35); }
+  form.guest-form input:focus { outline: 2px solid var(--brass-light); border-color: transparent; }
+
+  button.confirm-btn {
+    margin-top: 6px;
+    background: var(--brass);
+    color: var(--lagoon);
+    border: none;
+    padding: 13px 20px;
+    border-radius: 3px;
+    font-family: 'Public Sans', sans-serif;
+    font-weight: 700;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background 0.15s ease;
+  }
+
+  button.confirm-btn:hover { background: var(--brass-light); }
+  button.confirm-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  .status-msg {
+    margin-top: 16px;
+    padding: 12px 16px;
+    border-radius: 3px;
+    font-size: 13px;
+    display: none;
+  }
+
+  .status-msg.visible { display: block; }
+  .status-msg.success { background: rgba(169,128,63,0.18); color: var(--brass-light); }
+  .status-msg.error { background: rgba(166,58,70,0.18); color: #E8A3A9; }
+
+  .demo-note {
+    font-size: 11px;
+    color: rgba(243,235,219,0.45);
+    margin-top: 14px;
+    font-style: italic;
+  }
+
+  button.demo-pay-btn {
+    margin-top: 10px;
+    background: transparent;
+    border: 1px solid rgba(243,235,219,0.35);
+    color: var(--sand);
+    padding: 8px 14px;
+    border-radius: 3px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    cursor: pointer;
+  }
+
+  button.demo-pay-btn:hover { border-color: var(--brass-light); }
+
+  /* Gift certificates — deliberately distinct accent (hibiscus, not
+     lagoon/brass) since it's a different kind of transaction. */
+  section.gift {
+    background: var(--hibiscus-pale);
+    border: 1px solid rgba(166,58,70,0.2);
+    border-radius: 4px;
+    padding: 28px;
+  }
+
+  section.gift h2 {
+    font-family: 'Fraunces', serif;
+    font-size: 21px;
+    color: var(--hibiscus);
+    margin: 0 0 4px;
+  }
+
+  section.gift .sub {
+    font-size: 13px;
+    color: rgba(22,35,31,0.6);
+    margin-bottom: 20px;
+  }
+
+  form.gift-form {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+
+  form.gift-form .full { grid-column: 1 / -1; }
+
+  form.gift-form label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--hibiscus);
+    display: block;
+    margin-bottom: 5px;
+  }
+
+  form.gift-form input {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid rgba(166,58,70,0.25);
+    border-radius: 3px;
+    background: var(--paper);
+    font-family: 'Public Sans', sans-serif;
+    font-size: 14px;
+    color: var(--ink);
+  }
+
+  button.gift-btn {
+    grid-column: 1 / -1;
+    margin-top: 4px;
+    background: var(--hibiscus);
+    color: var(--paper);
+    border: none;
+    padding: 13px 20px;
+    border-radius: 3px;
+    font-weight: 700;
+    font-size: 14px;
+    cursor: pointer;
+  }
+
+  button.gift-btn:hover { background: #8C2F3A; }
+
+  @media (max-width: 560px) {
+    form.gift-form { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <p class="hotel-name">The George Lagos</p>
+  <p class="subtitle">Spa &amp; Leisure Reservations</p>
+</header>
+
+<main>
+  <section class="intro">
+    <h1>Reserve your time with us</h1>
+    <p>Treatments, tennis, golf and poolside loungers — booked in a moment, confirmed by our team.</p>
+  </section>
+
+  <div class="menu-grid" id="menuGrid">
+    <!-- populated from /api/webshop/activity-types -->
+  </div>
+
+  <section class="booking-panel" id="bookingPanel">
+    <h2 id="panelActivityName">—</h2>
+    <p class="selected-sub" id="panelActivityMeta">—</p>
+
+    <label class="mono" style="font-size:12px; text-transform:uppercase; letter-spacing:0.1em; color:var(--brass);">Choose a date</label><br>
+    <input type="date" id="dateInput">
+
+    <div class="slots" id="slotsContainer"></div>
+    <p class="slots-empty" id="slotsEmpty" style="display:none;">No times available on this date — try another day.</p>
+
+    <div class="ticket" id="ticket">
+      <div class="ticket-notches"></div>
+      <div class="ticket-top">
+        <div class="ticket-label">Reservation</div>
+        <p class="ticket-activity" id="ticketActivity">—</p>
+        <div class="ticket-row"><span>Date &amp; time</span><strong id="ticketWhen">—</strong></div>
+        <div class="ticket-row"><span>Duration</span><strong id="ticketDuration">—</strong></div>
+        <div class="ticket-row"><span>Rate</span><strong id="ticketPrice">—</strong></div>
+      </div>
+      <div class="ticket-bottom">
+        <div class="ticket-label">Guest details</div>
+        <form class="guest-form" id="guestForm">
+          <div>
+            <label>Full name</label>
+            <input type="text" id="guestName" placeholder="Jane Doe" required>
+          </div>
+          <div>
+            <label>Email</label>
+            <input type="email" id="guestEmail" placeholder="jane@example.com" required>
+          </div>
+          <div>
+            <label>Phone</label>
+            <input type="tel" id="guestPhone" placeholder="+234 800 000 0000" required>
+          </div>
+          <button type="submit" class="confirm-btn" id="confirmBtn">Reserve</button>
+        </form>
+        <div class="status-msg" id="bookingStatus"></div>
+        <button class="demo-pay-btn" id="demoPayBtn" style="display:none;">Simulate payment (demo)</button>
+        <p class="demo-note">No real payment gateway is connected yet — reservations are held as "pending payment" until a future gateway confirms them.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="gift">
+    <h2>Gift Certificates</h2>
+    <p class="sub">Give the gift of a treatment, a tee time, or an afternoon by the pool.</p>
+    <form class="gift-form" id="giftForm">
+      <div>
+        <label>Amount (NGN)</label>
+        <input type="number" id="giftAmount" placeholder="50000" min="1000" step="500" required>
+      </div>
+      <div>
+        <label>Recipient name</label>
+        <input type="text" id="giftRecipientName" placeholder="Bola Smith" required>
+      </div>
+      <div class="full">
+        <label>Recipient email</label>
+        <input type="email" id="giftRecipientEmail" placeholder="bola@example.com" required>
+      </div>
+      <div>
+        <label>Your name</label>
+        <input type="text" id="giftPurchaserName" placeholder="Jane Doe" required>
+      </div>
+      <div>
+        <label>Your email</label>
+        <input type="email" id="giftPurchaserEmail" placeholder="jane@example.com" required>
+      </div>
+      <div class="full">
+        <label>Your phone</label>
+        <input type="tel" id="giftPurchaserPhone" placeholder="+234 800 000 0000" required>
+      </div>
+      <button type="submit" class="gift-btn">Purchase certificate</button>
+    </form>
+    <div class="status-msg" id="giftStatus"></div>
+  </section>
+</main>
+
+<script>
+  const PROPERTY_CODE = 'TGL';
+  const API = '';
+
+  let activityTypes = [];
+  let selectedActivity = null;
+  let selectedSlot = null;
+  let lastBookingId = null;
+
+  const menuGrid = document.getElementById('menuGrid');
+  const bookingPanel = document.getElementById('bookingPanel');
+  const panelActivityName = document.getElementById('panelActivityName');
+  const panelActivityMeta = document.getElementById('panelActivityMeta');
+  const dateInput = document.getElementById('dateInput');
+  const slotsContainer = document.getElementById('slotsContainer');
+  const slotsEmpty = document.getElementById('slotsEmpty');
+  const ticket = document.getElementById('ticket');
+  const ticketActivity = document.getElementById('ticketActivity');
+  const ticketWhen = document.getElementById('ticketWhen');
+  const ticketDuration = document.getElementById('ticketDuration');
+  const ticketPrice = document.getElementById('ticketPrice');
+  const guestForm = document.getElementById('guestForm');
+  const confirmBtn = document.getElementById('confirmBtn');
+  const bookingStatus = document.getElementById('bookingStatus');
+  const demoPayBtn = document.getElementById('demoPayBtn');
+
+  function money(amount, currency) {
+    const n = Number(amount);
+    return currency + ' ' + n.toLocaleString();
+  }
+
+  function todayISO() {
+    const d = new Date();
+    return d.toISOString().slice(0, 10);
+  }
+
+  async function loadActivityTypes() {
+    const res = await fetch(`${API}/api/webshop/activity-types?propertyCode=${PROPERTY_CODE}`);
+    activityTypes = await res.json();
+    menuGrid.innerHTML = '';
+    activityTypes.forEach(activity => {
+      const card = document.createElement('div');
+      card.className = 'menu-card';
+      card.dataset.id = activity.id;
+      card.innerHTML = `
+        <div class="cat-label">${activity.category.replace('_', ' ')}</div>
+        <h3>${activity.name}</h3>
+        <div class="meta">
+          <span>${activity.durationMinutes} min</span>
+          <span class="price">${money(activity.price, activity.currency)}</span>
+        </div>`;
+      card.addEventListener('click', () => selectActivity(activity, card));
+      menuGrid.appendChild(card);
+    });
+  }
+
+  function resetGuestForm() {
+    guestForm.style.display = '';
+    guestForm.reset();
+    confirmBtn.disabled = false;
+    confirmBtn.textContent = 'Reserve';
+  }
+
+  function selectActivity(activity, cardEl) {
+    selectedActivity = activity;
+    selectedSlot = null;
+    document.querySelectorAll('.menu-card').forEach(c => c.classList.remove('selected'));
+    cardEl.classList.add('selected');
+
+    panelActivityName.textContent = activity.name;
+    panelActivityMeta.textContent = `${activity.durationMinutes} min · ${money(activity.price, activity.currency)}`;
+    bookingPanel.classList.add('visible');
+    ticket.classList.remove('visible');
+    bookingStatus.classList.remove('visible');
+    demoPayBtn.style.display = 'none';
+    resetGuestForm();
+
+    if (!dateInput.value) dateInput.value = todayISO();
+    loadSlots();
+    bookingPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  async function loadSlots() {
+    if (!selectedActivity) return;
+    slotsContainer.innerHTML = '';
+    slotsEmpty.style.display = 'none';
+
+    const res = await fetch(`${API}/api/webshop/availability?activityTypeId=${selectedActivity.id}&date=${dateInput.value}`);
+    if (!res.ok) {
+      slotsEmpty.textContent = 'Could not load availability — please try again.';
+      slotsEmpty.style.display = 'block';
+      return;
+    }
+    const data = await res.json();
+    const slots = data.availableStartTimes || [];
+
+    if (slots.length === 0) {
+      slotsEmpty.textContent = 'No times available on this date — try another day.';
+      slotsEmpty.style.display = 'block';
+      return;
+    }
+
+    slots.forEach(slot => {
+      const chip = document.createElement('div');
+      chip.className = 'slot-chip';
+      const time = slot.split('T')[1].slice(0, 5);
+      chip.textContent = time;
+      chip.addEventListener('click', () => selectSlot(slot, chip));
+      slotsContainer.appendChild(chip);
+    });
+  }
+
+  function selectSlot(slot, chipEl) {
+    selectedSlot = slot;
+    document.querySelectorAll('.slot-chip').forEach(c => c.classList.remove('selected'));
+    chipEl.classList.add('selected');
+
+    const dt = new Date(slot);
+    ticketActivity.textContent = selectedActivity.name;
+    ticketWhen.textContent = dt.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' })
+      + ' at ' + slot.split('T')[1].slice(0, 5);
+    ticketDuration.textContent = selectedActivity.durationMinutes + ' min';
+    ticketPrice.textContent = money(selectedActivity.price, selectedActivity.currency);
+
+    ticket.classList.add('visible');
+    bookingStatus.classList.remove('visible');
+    demoPayBtn.style.display = 'none';
+    resetGuestForm();
+    ticket.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+
+  dateInput.addEventListener('change', loadSlots);
+
+  guestForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    if (!selectedSlot) return;
+
+    confirmBtn.disabled = true;
+    confirmBtn.textContent = 'Reserving…';
+
+    const body = {
+      activityTypeId: selectedActivity.id,
+      customerName: document.getElementById('guestName').value,
+      customerEmail: document.getElementById('guestEmail').value,
+      customerPhone: document.getElementById('guestPhone').value,
+      startTime: selectedSlot
+    };
+
+    try {
+      const res = await fetch(`${API}/api/webshop/bookings`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      });
+
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.message || `Request failed (${res.status})`);
+      }
+
+      const booking = await res.json();
+      lastBookingId = booking.id;
+
+      bookingStatus.className = 'status-msg success visible';
+      bookingStatus.textContent = `Reservation held — booking #${booking.id}, status: ${booking.status}. `
+        + `Our team will confirm your payment shortly.`;
+      demoPayBtn.style.display = 'inline-block';
+      confirmBtn.textContent = 'Reserve';
+      guestForm.style.display = 'none';
+
+      // Re-check availability so this slot no longer appears free.
+      loadSlots();
+    } catch (err) {
+      bookingStatus.className = 'status-msg error visible';
+      bookingStatus.textContent = err.message || 'Something went wrong — please try again.';
+      confirmBtn.disabled = false;
+      confirmBtn.textContent = 'Reserve';
+    }
+  });
+
+  demoPayBtn.addEventListener('click', async () => {
+    if (!lastBookingId) return;
+    demoPayBtn.disabled = true;
+    demoPayBtn.textContent = 'Confirming…';
+    try {
+      const res = await fetch(`${API}/api/webshop/bookings/${lastBookingId}/mark-paid`, { method: 'POST' });
+      if (!res.ok) throw new Error('Could not confirm payment.');
+      const booking = await res.json();
+      bookingStatus.className = 'status-msg success visible';
+      bookingStatus.textContent = `Payment confirmed — booking #${booking.id} is now ${booking.status}. We look forward to seeing you.`;
+      demoPayBtn.style.display = 'none';
+    } catch (err) {
+      demoPayBtn.disabled = false;
+      demoPayBtn.textContent = 'Simulate payment (demo)';
+    }
+  });
+
+  document.getElementById('giftForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const giftStatus = document.getElementById('giftStatus');
+    const submitBtn = e.target.querySelector('button[type="submit"]');
+    submitBtn.disabled = true;
+
+    const body = {
+      propertyCode: PROPERTY_CODE,
+      amount: Number(document.getElementById('giftAmount').value),
+      currency: 'NGN',
+      purchaserName: document.getElementById('giftPurchaserName').value,
+      purchaserEmail: document.getElementById('giftPurchaserEmail').value,
+      purchaserPhone: document.getElementById('giftPurchaserPhone').value,
+      recipientName: document.getElementById('giftRecipientName').value,
+      recipientEmail: document.getElementById('giftRecipientEmail').value
+    };
+
+    try {
+      const res = await fetch(`${API}/api/webshop/gift-certificates`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      });
+      if (!res.ok) throw new Error('Could not create the certificate — please check the details and try again.');
+      const cert = await res.json();
+      giftStatus.className = 'status-msg success visible';
+      giftStatus.style.color = '#7A2A33';
+      giftStatus.style.background = 'rgba(166,58,70,0.12)';
+      giftStatus.textContent = `Certificate ${cert.code} created for ${money(cert.amount, cert.currency)} — `
+        + `awaiting payment confirmation before it becomes redeemable.`;
+      e.target.reset();
+    } catch (err) {
+      giftStatus.className = 'status-msg error visible';
+      giftStatus.style.color = '#7A2A33';
+      giftStatus.style.background = 'rgba(166,58,70,0.12)';
+      giftStatus.textContent = err.message;
+    } finally {
+      submitBtn.disabled = false;
+    }
+  });
+
+  loadActivityTypes();
+</script>
+
+</body>
+</html>
