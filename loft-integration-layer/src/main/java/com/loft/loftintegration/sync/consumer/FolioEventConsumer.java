@@ -28,9 +28,9 @@ public class FolioEventConsumer {
 
     private static final Logger log = LoggerFactory.getLogger(FolioEventConsumer.class);
 
-    private final BillingService billingService;
+    private BillingService billingService;
 
-    public FolioEventConsumer(BillingService billingService) {
+    public void setBillingService(BillingService billingService) {
         this.billingService = billingService;
     }
 

@@ -89,28 +89,21 @@
         </dependency>
 
         <!-- Booking module's own database (separate from Opera's) —
-             Oracle Database for production deployments, matching Opera PMS.
-             Replaces H2 file-based database which is not suitable for
-             high-availability production. Using standard JPA means this
-             is just a dependency + config change. -->
+             H2 Database Engine for development/testing.
+             For production deployments, switch to Oracle Database dependencies below,
+             matching Opera PMS architecture. -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-jpa</artifactId>
         </dependency>
-        <!-- Oracle JDBC driver for booking database.
-             Using ojdbc8 for modern Oracle Database versions (12c+).
-             If connecting to older Oracle 11g, switch to ojdbc6 above. -->
+        <!-- H2 Database Engine for development/testing -->
         <dependency>
-            <groupId>com.oracle.database.jdbc</groupId>
-            <artifactId>ojdbc8</artifactId>
-            <version>21.9.0.0</version>
+            <groupId>com.h2database</groupId>
+            <artifactId>h2</artifactId>
+            <scope>runtime</scope>
         </dependency>
-        <!-- Flyway: replaces ddl-auto: update with real, versioned
-             migrations. Directly fixes the "schema change means wipe
-             the whole dev database" problem hit repeatedly during
-             development (lounger resources, shift templates, retail
-             items, and the price column all needed a wipe or a
-             separate-guard workaround under ddl-auto: update).
+        <!-- Flyway: versioned migrations for production Oracle deployments.
+             Disabled for H2 development (uses ddl-auto: update instead).
              Oracle requires flyway-database-oracle module for full
              compatibility with Oracle-specific features. -->
         <dependency>
@@ -121,6 +114,20 @@
             <groupId>org.flywaydb</groupId>
             <artifactId>flyway-database-oracle</artifactId>
         </dependency>
+
+        <!-- PRODUCTION DEPENDENCIES (Oracle Database):
+             Uncomment these and comment out the H2 dependency above for production.
+        -->
+        <!-- Oracle JDBC driver for booking database.
+             Using ojdbc8 for modern Oracle Database versions (12c+).
+             If connecting to older Oracle 11g, switch to ojdbc6 above. -->
+        <!--
+        <dependency>
+            <groupId>com.oracle.database.jdbc</groupId>
+            <artifactId>ojdbc8</artifactId>
+            <version>21.9.0.0</version>
+        </dependency>
+        -->
 
         <dependency>
             <groupId>org.springframework.boot</groupId>
