@@ -46,7 +46,7 @@ public class AdminController {
     // ========== Activity Types (Catalog) Management ==========
 
     @GetMapping("/catalog")
-    public String listActivityTypes(@RequestParam(defaultValue = "LOFT") String propertyCode, Model model) {
+    public String listActivityTypes(@RequestParam(name = "propertyCode", defaultValue = "LOFT") String propertyCode, Model model) {
         List<ActivityType> activityTypes = activityTypeRepository.findByPropertyCode(propertyCode);
         model.addAttribute("activityTypes", activityTypes);
         model.addAttribute("propertyCode", propertyCode);
@@ -58,6 +58,7 @@ public class AdminController {
     public String newActivityTypeForm(Model model) {
         model.addAttribute("activityType", new ActivityTypeForm());
         model.addAttribute("categories", ActivityCategory.values());
+        model.addAttribute("propertyCode", "LOFT");
         model.addAttribute("pageTitle", "New Activity Type - Loft");
         return "admin/activity-type-form";
     }
