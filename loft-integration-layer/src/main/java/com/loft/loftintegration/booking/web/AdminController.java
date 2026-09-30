@@ -111,7 +111,7 @@ public class AdminController {
     // ========== Resources Management ==========
 
     @GetMapping("/resources")
-    public String listResources(@RequestParam(defaultValue = "LOFT") String propertyCode, Model model) {
+    public String listResources(@RequestParam(name = "propertyCode", defaultValue = "LOFT") String propertyCode, Model model) {
         List<Resource> allResources = resourceRepository.findAll();
         List<Resource> resources = allResources.stream()
             .filter(r -> r.getPropertyCode().equals(propertyCode))
