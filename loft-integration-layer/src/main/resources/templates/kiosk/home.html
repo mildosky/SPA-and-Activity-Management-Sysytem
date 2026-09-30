@@ -41,7 +41,8 @@
         
         <div class="activities-grid">
             <div class="activity-card" th:each="activity : ${activities}" 
-                 th:onclick="'window.location.href=\'/kiosk/activity/' + ${activity.id} + '\''">
+                 th:attr="data-url=${'/kiosk/activity/' + activity.id}"
+                 onclick="window.location.href=this.dataset.url">
                 <span class="category" th:text="${activity.category}">SPA</span>
                 <h3 th:text="${activity.name}">60-Minute Massage</h3>
                 <div class="details">

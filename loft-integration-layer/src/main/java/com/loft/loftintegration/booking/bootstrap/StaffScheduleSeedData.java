@@ -45,7 +45,7 @@ import java.util.Set;
 public class StaffScheduleSeedData implements ApplicationRunner {
 
     private static final Logger log = LoggerFactory.getLogger(StaffScheduleSeedData.class);
-    private static final String PROPERTY_CODE = "TGL";
+    private static final String PROPERTY_CODE = "LOFT";
 
     private final ResourceRepository resourceRepository;
     private final ShiftTemplateRepository shiftTemplateRepository;

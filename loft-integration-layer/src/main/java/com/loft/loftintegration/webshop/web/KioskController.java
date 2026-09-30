@@ -124,7 +124,7 @@ public class KioskController {
             redirectAttributes.addFlashAttribute("successMessage", "Booking confirmed!");
             redirectAttributes.addFlashAttribute("guestName", guestName);
             redirectAttributes.addFlashAttribute("activityName", activity.getName());
-            redirectAttributes.addFlashAttribute("bookingTime", dateTime);
+            redirectAttributes.addFlashAttribute("bookingTime", startDateTime);
             return "redirect:/kiosk/success";
         } catch (Exception e) {
             model.addAttribute("errorMessage", "Could not complete booking: " + e.getMessage());

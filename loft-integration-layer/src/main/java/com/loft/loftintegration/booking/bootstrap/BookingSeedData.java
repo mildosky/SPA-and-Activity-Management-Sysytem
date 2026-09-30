@@ -30,7 +30,7 @@ import org.springframework.stereotype.Component;
 public class BookingSeedData implements ApplicationRunner {
 
     private static final Logger log = LoggerFactory.getLogger(BookingSeedData.class);
-    private static final String PROPERTY_CODE = "TGL";
+    private static final String PROPERTY_CODE = "LOFT";
 
     private final ActivityTypeRepository activityTypeRepository;
     private final ResourceRepository resourceRepository;

@@ -11,7 +11,7 @@ import org.springframework.stereotype.Component;
 import java.math.BigDecimal;
 
 /**
- * Seeds example retail items for property TGL. Own independent guard
+ * Seeds example retail items for property LOFT. Own independent guard
  * (checks THIS table, not BookingSeedData's) — same lesson applied as
  * StaffScheduleSeedData: seeds correctly on an existing database
  * without needing a wipe, regardless of what other seed data has
@@ -21,7 +21,7 @@ import java.math.BigDecimal;
 public class RetailItemSeedData implements ApplicationRunner {
 
     private static final Logger log = LoggerFactory.getLogger(RetailItemSeedData.class);
-    private static final String PROPERTY_CODE = "TGL";
+    private static final String PROPERTY_CODE = "LOFT";
 
     private final RetailItemRepository retailItemRepository;
 
