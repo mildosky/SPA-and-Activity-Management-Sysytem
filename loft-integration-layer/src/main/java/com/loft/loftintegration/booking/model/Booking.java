@@ -43,6 +43,15 @@ public class Booking {
     @Column(nullable = true)
     private String operaReservationId;
 
+    /**
+     * Display name captured at booking time (kiosk/webshop guest entry).
+     * Nullable: staff-created or Opera-sourced bookings may only have a
+     * guestProfileId. Admin screens prefer this, falling back to the
+     * directory lookup.
+     */
+    @Column(nullable = true)
+    private String guestName;
+
     @Column(nullable = false)
     private LocalDateTime startTime;
 
@@ -62,10 +71,16 @@ public class Booking {
 
     public Booking(String propertyCode, ActivityType activityType, String guestProfileId,
                     String operaReservationId, LocalDateTime startTime, LocalDateTime endTime) {
+        this(propertyCode, activityType, guestProfileId, operaReservationId, null, startTime, endTime);
+    }
+
+    public Booking(String propertyCode, ActivityType activityType, String guestProfileId,
+                    String operaReservationId, String guestName, LocalDateTime startTime, LocalDateTime endTime) {
         this.propertyCode = propertyCode;
         this.activityType = activityType;
         this.guestProfileId = guestProfileId;
         this.operaReservationId = operaReservationId;
+        this.guestName = guestName;
         this.startTime = startTime;
         this.endTime = endTime;
     }
@@ -75,6 +90,8 @@ public class Booking {
     public ActivityType getActivityType() { return activityType; }
     public String getGuestProfileId() { return guestProfileId; }
     public String getOperaReservationId() { return operaReservationId; }
+    public String getGuestName() { return guestName; }
+    public void setGuestName(String guestName) { this.guestName = guestName; }
     public LocalDateTime getStartTime() { return startTime; }
     public LocalDateTime getEndTime() { return endTime; }
     public BookingStatus getStatus() { return status; }

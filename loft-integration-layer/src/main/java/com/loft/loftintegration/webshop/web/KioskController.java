@@ -111,12 +111,14 @@ public class KioskController {
                 "Kiosk booking"
             );
             
-            // Call the appropriate createBooking method
+            // Call the appropriate createBooking method — passing guestName so
+            // staff can see WHO booked in the admin bookings screen.
             bookingService.createBooking(
                 request.propertyCode(),
                 request.activityTypeId(),
                 request.guestProfileId(),
                 request.operaReservationId(),
+                guestName,
                 request.startTime(),
                 request.endTime()
             );

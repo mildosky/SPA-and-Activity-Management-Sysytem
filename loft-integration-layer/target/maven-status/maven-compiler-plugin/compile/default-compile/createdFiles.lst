@@ -61,6 +61,7 @@ com/loft/loftintegration/webshop/model/GiftCertificateStatus.class
 com/loft/loftintegration/pos/model/PosSaleLineItem.class
 com/loft/loftintegration/pos/model/Charge.class
 com/loft/loftintegration/sync/consumer/ReservationEventConsumer$1.class
+com/loft/loftintegration/booking/web/AdminBookingsController.class
 com/loft/loftintegration/pos/web/PosSaleResponse.class
 com/loft/loftintegration/pos/service/BillingService.class
 com/loft/loftintegration/webshop/repository/CustomerRepository.class

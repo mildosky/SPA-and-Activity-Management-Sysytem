@@ -6,6 +6,7 @@
 /workspace/loft-integration-layer/src/main/java/com/loft/loftintegration/tools/OperaDistinctValues.java
 /workspace/loft-integration-layer/src/main/java/com/loft/loftintegration/directory/service/GuestDirectoryService.java
 /workspace/loft-integration-layer/src/main/java/com/loft/loftintegration/connector/opera/OperaOhipConnector.java
+/workspace/loft-integration-layer/src/main/java/com/loft/loftintegration/booking/web/AdminBookingsController.java
 /workspace/loft-integration-layer/src/main/java/com/loft/loftintegration/sync/SyncEngine.java
 /workspace/loft-integration-layer/src/main/java/com/loft/loftintegration/booking/bootstrap/BookingSeedData.java
 /workspace/loft-integration-layer/src/main/java/com/loft/loftintegration/booking/web/RecurringBookingResponse.java

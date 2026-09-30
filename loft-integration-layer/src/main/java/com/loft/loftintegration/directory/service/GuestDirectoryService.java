@@ -66,4 +66,23 @@ public class GuestDirectoryService {
         }
         return repository.findByEmailIgnoreCase(email).map(OperaGuestMirror::getOperaNameId);
     }
+
+    /**
+     * Resolves an Opera NAME_ID to the guest's display name from the local
+     * mirror. Used by staff-facing screens to label bookings that were
+     * linked to a real Opera profile (as opposed to kiosk/webshop bookings
+     * that captured a name directly at booking time).
+     */
+    @Transactional(readOnly = true)
+    public Optional<String> findGuestNameById(String operaNameId) {
+        if (operaNameId == null || operaNameId.isBlank() || operaNameId.startsWith("WEB-")) {
+            return Optional.empty();
+        }
+        return repository.findByOperaNameId(operaNameId).map(mirror -> {
+            String first = mirror.getFirstName() == null ? "" : mirror.getFirstName().trim();
+            String last = mirror.getLastName() == null ? "" : mirror.getLastName().trim();
+            String full = (first + " " + last).trim();
+            return full.isEmpty() ? null : full;
+        });
+    }
 }

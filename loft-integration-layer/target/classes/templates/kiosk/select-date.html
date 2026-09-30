@@ -36,40 +36,42 @@
         <a href="/kiosk">← Back</a>
         <h1>Select Date & Time</h1>
     </div>
-    
+
     <div class="container">
         <div class="card">
             <div class="activity-info">
                 <h2 th:text="${activity.name}">60-Minute Massage</h2>
-                <p><span th:text="${activity.defaultDurationMinutes}">60</span> minutes • <span th:text="${activity.price} + ' ' + ${activity.currency}">$100.00 USD</span></p>
+                <p><span th:text="${activity.defaultDurationMinutes}">60</span> minutes • <span th:text="${activity.price} + ' ' + ${activity.currency}">45000 NGN</span></p>
             </div>
-            
+
             <h3 style="margin-bottom: 1rem;">Select a Date</h3>
             <div class="dates-grid">
-                <div class="date-card" th:each="date : ${dates}" 
-                     th:data-date="${date.format(java.time.format.DateTimeFormatter.ISO_LOCAL_DATE)}"
+                <div class="date-card" th:each="d : ${dates}"
+                     th:data-date="${#temporals.format(d, 'yyyy-MM-dd')}"
                      onclick="selectDate(this)">
-                    <div class="day" th:text="${date.format(dateFormat)}">Mon, Jan 1</div>
-                    <div class="date" th:text="${date.format(java.time.format.DateTimeFormatter.ofPattern('MMM d, yyyy'))}">Jan 1, 2024</div>
+                    <div class="day" th:text="${#temporals.format(d, 'EEE, MMM d')}">Mon, Jan 1</div>
+                    <div class="date" th:text="${#temporals.format(d, 'MMMM yyyy')}">January 2026</div>
                 </div>
             </div>
-            
+
             <div id="timesSection" class="times-section">
                 <h3 style="margin-bottom: 1rem;">Available Times for <span id="selectedDateText"></span></h3>
                 <div class="times-grid">
-                    <button class="time-btn" th:each="hour : ${#numbers.sequence(9, 17)}" 
-                            th:onclick="'selectTime(\'' + ${#temporals.format(activity.defaultDurationMinutes <= 60 ? T(java.time.LocalDateTime).now().toLocalDate().plusDays(0).atStartOfDay().plusHours(hour).toLocalDate().atStartOfDay().plusHours(hour).format(java.time.format.DateTimeFormatter.ISO_LOCAL_DATE) : T(java.time.LocalDateTime).now().toLocalDate().atStartOfDay().plusHours(hour).toLocalDate().atStartOfDay().plusHours(hour).format(java.time.format.DateTimeFormatter.ISO_LOCAL_DATE))} + 'T' + ${String.format('%02d', hour)} + ':00\')'"
-                            th:text="${String.format('%02d', hour)} + ':00'">09:00</button>
+                    <button class="time-btn" th:each="hour : ${#numbers.sequence(9, 17)}"
+                            th:attr="data-time=${hour + ':00'}"
+                            onclick="selectTime(this)"
+                            th:text="${hour} + ':00'">9:00</button>
                 </div>
             </div>
-            
+
             <a href="/kiosk" class="btn btn-secondary">Cancel</a>
         </div>
     </div>
-    
+
     <script>
+        const activityId = /*[[${activity.id}]]*/ 1;
         let selectedDate = null;
-        
+
         function selectDate(element) {
             document.querySelectorAll('.date-card').forEach(el => el.classList.remove('selected-date'));
             element.classList.add('selected-date');
@@ -77,10 +79,10 @@
             document.getElementById('timesSection').classList.add('active');
             document.getElementById('selectedDateText').textContent = element.querySelector('.day').textContent;
         }
-        
-        function selectTime(time) {
-            const date = selectedDate;
-            window.location.href = '/kiosk/activity/[[${activity.id}]]/book?date=' + date + '&time=' + time.split('T')[1];
+
+        function selectTime(button) {
+            const time = button.dataset.time;
+            window.location.href = '/kiosk/activity/' + activityId + '/book?date=' + selectedDate + '&time=' + encodeURIComponent(time);
         }
     </script>
 </body>

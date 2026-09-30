@@ -109,6 +109,18 @@ public class BookingService {
     @Transactional
     public Booking createBooking(String propertyCode, Long activityTypeId, String guestProfileId, 
                                   String operaReservationId, LocalDateTime startTime, LocalDateTime endTime) {
+        return createBooking(propertyCode, activityTypeId, guestProfileId, operaReservationId, null, startTime, endTime);
+    }
+
+    /**
+     * As above, but capturing the guest's display name at booking time so
+     * staff-facing screens (kiosk/webshop bookings) can show WHO booked
+     * without needing a directory lookup.
+     */
+    @Transactional
+    public Booking createBooking(String propertyCode, Long activityTypeId, String guestProfileId,
+                                  String operaReservationId, String guestName,
+                                  LocalDateTime startTime, LocalDateTime endTime) {
         ActivityType activityType = activityTypeRepository.findById(activityTypeId)
                 .orElseThrow(() -> new NoSuchElementException("No ActivityType with id " + activityTypeId));
 
@@ -116,7 +128,7 @@ public class BookingService {
                 availabilityService.findAvailableResources(
                         propertyCode, activityType.getRequirements(), startTime, endTime);
 
-        Booking booking = new Booking(propertyCode, activityType, guestProfileId, operaReservationId, startTime, endTime);
+        Booking booking = new Booking(propertyCode, activityType, guestProfileId, operaReservationId, guestName, startTime, endTime);
         booking.setStatus(BookingStatus.CONFIRMED);
         booking = bookingRepository.save(booking);
 

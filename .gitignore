@@ -1,7 +1,5 @@
-# Maven build output
+# Compiled and build artifacts
 target/
 
-# Database files (H2, SQLite, etc.)
+# Database files
 *.mv.db
-*.trace.db
-*.db

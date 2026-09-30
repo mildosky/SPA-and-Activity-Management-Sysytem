@@ -6,10 +6,18 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 public interface BookingRepository extends JpaRepository<Booking, Long> {
     long countByPropertyCodeAndStatus(String propertyCode, BookingStatus status);
+
+    List<Booking> findByPropertyCodeOrderByStartTimeDesc(String propertyCode);
+
+    List<Booking> findByPropertyCodeAndStatusOrderByStartTimeDesc(String propertyCode, BookingStatus status);
+
+    List<Booking> findByPropertyCodeAndStartTimeGreaterThanEqualAndStartTimeLessThanOrderByStartTime(
+            String propertyCode, LocalDateTime from, LocalDateTime to);
 
     /**
      * Counts non-cancelled bookings grouped by activity type name.
