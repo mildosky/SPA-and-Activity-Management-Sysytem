@@ -8,4 +8,6 @@ import java.util.List;
 
 public interface ResourceRepository extends JpaRepository<Resource, Long> {
     List<Resource> findByPropertyCodeAndResourceTypeAndActiveTrue(String propertyCode, ResourceType resourceType);
+
+    List<Resource> findByPropertyCode(String propertyCode);
 }

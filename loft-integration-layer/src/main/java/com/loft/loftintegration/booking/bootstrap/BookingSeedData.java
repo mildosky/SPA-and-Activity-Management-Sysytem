@@ -11,6 +11,8 @@ import org.springframework.boot.ApplicationRunner;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
+
 /**
  * Seeds example ActivityTypes and Resources on first startup, so the
  * booking flow can be exercised via BookingController immediately
@@ -105,5 +107,35 @@ public class BookingSeedData implements ApplicationRunner {
                         + resourceRepository.findByPropertyCodeAndResourceTypeAndActiveTrue(PROPERTY_CODE, ResourceType.COURT).size()
                         + resourceRepository.findByPropertyCodeAndResourceTypeAndActiveTrue(PROPERTY_CODE, ResourceType.TEE_TIME_SLOT).size()
                         + resourceRepository.findByPropertyCodeAndResourceTypeAndActiveTrue(PROPERTY_CODE, ResourceType.LOUNGER).size());
+    }
+
+    /**
+     * Re-points rows that were seeded under the legacy hard-coded "LOFT"
+     * property code to the real property code adopted from
+     * property-profile.yml (e.g. "TGL"). Idempotent: once no "LOFT" rows
+     * remain, subsequent startups do nothing.
+     */
+    private void migrateLegacyLoftData(String newPropertyCode) {
+        List<ActivityType> legacyActivityTypes =
+                activityTypeRepository.findByPropertyCode(LoftProperties.DEFAULT_PROPERTY_CODE);
+        List<Resource> legacyResources =
+                resourceRepository.findByPropertyCode(LoftProperties.DEFAULT_PROPERTY_CODE);
+
+        if (legacyActivityTypes.isEmpty() && legacyResources.isEmpty()) {
+            return;
+        }
+
+        for (ActivityType activityType : legacyActivityTypes) {
+            activityType.setPropertyCode(newPropertyCode);
+        }
+        for (Resource resource : legacyResources) {
+            resource.setPropertyCode(newPropertyCode);
+        }
+        activityTypeRepository.saveAll(legacyActivityTypes);
+        resourceRepository.saveAll(legacyResources);
+
+        log.info("Migrated legacy '{}' booking data to '{}': {} activity types, {} resources.",
+                LoftProperties.DEFAULT_PROPERTY_CODE, newPropertyCode,
+                legacyActivityTypes.size(), legacyResources.size());
     }
 }

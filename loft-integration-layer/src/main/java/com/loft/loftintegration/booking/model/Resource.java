@@ -46,6 +46,7 @@ public class Resource {
 
     public Long getId() { return id; }
     public String getPropertyCode() { return propertyCode; }
+    public void setPropertyCode(String propertyCode) { this.propertyCode = propertyCode; }
     public ResourceType getResourceType() { return resourceType; }
     public String getName() { return name; }
     public boolean isActive() { return active; }
