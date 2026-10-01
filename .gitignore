@@ -1,5 +1,5 @@
-# Compiled and build artifacts
+# Maven/Java Build Artifacts
 target/
 
-# Database files
+# Database Files
 *.mv.db
