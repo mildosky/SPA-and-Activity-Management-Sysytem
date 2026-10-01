@@ -25,7 +25,8 @@ public class ReservationEvent {
     /**
      * True when this reservation is an active in-house stay (checked-in
      * or arrived, not yet departed/cancelled). Connector-specific how it's
-     * determined — for Opera v5 direct it's RESERV_STATUS_FLAG='I'.
+     * determined — for Opera v5 direct it's RESV_STATUS='CHECKED IN'
+     * (this property's schema has no RESERV_STATUS_FLAG column).
      */
     private boolean inHouse;
     private ChangeType changeType;

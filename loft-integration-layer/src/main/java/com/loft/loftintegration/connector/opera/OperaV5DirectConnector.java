@@ -40,6 +40,10 @@ import java.util.List;
  *    ('CHECKED OUT'/'CANCELLED'/'CHECKED IN'), confirmed via
  *    OperaDistinctValues — NOT the short codes from RESORT_BOOKING_STATUS
  *    (CXL/DEF/TEN/etc.), which turned out to be an unrelated table.
+ *  - RESERVATION_NAME has NO RESERV_STATUS_FLAG column in this schema
+ *    (ORA-00904 observed at runtime) — 'CHECKED IN' in RESV_STATUS is
+ *    the in-house marker here. Check USER_TAB_COLUMNS before assuming
+ *    other properties share this layout.
  *  - Guest profile pull filters out NAME_ID <= 0 — Opera's convention
  *    for system/pseudo profiles (e.g. NAME_ID=-9999 "Post It"), not
  *    real guests.
@@ -178,9 +182,16 @@ public class OperaV5DirectConnector implements PmsConnector {
         // TODO: verify this join actually matches real rows once tested —
         // the two tables were populated by different processes and the
         // text/number format alignment hasn't been confirmed end to end.
+        // NOTE: this schema's RESERVATION_NAME has NO RESERV_STATUS_FLAG
+        // column (confirmed by ORA-00904 against The George Lagos). The
+        // in-house marker lives in RESV_STATUS as plain English here —
+        // 'CHECKED IN' / 'CHECKED OUT' / 'CANCELLED', confirmed via
+        // OperaDistinctValues across all 40 lab rows. Do not re-add the
+        // flag column without checking USER_TAB_COLUMNS on the target
+        // property first; other Opera installs may have it.
         String sql = """
                 SELECT rn.RESV_NAME_ID, rn.RESORT, rn.NAME_ID, rn.BEGIN_DATE, rn.END_DATE,
-                       rn.RESV_STATUS, rn.RESERV_STATUS_FLAG, rn.INSERT_DATE, rn.UPDATE_DATE,
+                       rn.RESV_STATUS, rn.INSERT_DATE, rn.UPDATE_DATE,
                        sr.ROOM_NUMBER, sr.ROOM_LABEL
                 FROM RESERVATION_NAME rn
                 LEFT JOIN STAY_RECORDS sr ON sr.PMS_RESV_NAME_ID = TO_CHAR(rn.RESV_NAME_ID)
@@ -213,15 +224,15 @@ public class OperaV5DirectConnector implements PmsConnector {
                     event.setRoomType(null);
                     event.setRoomNumber(rs.getString("ROOM_NUMBER"));
 
-                    // RESERV_STATUS_FLAG is Opera's canonical in-house marker:
-                    // 'I' = checked-in/in-house, 'R' = reserved (not arrived),
-                    // 'O' = departed/checked-out. This is what lets a kiosk
-                    // booking know the guest has a LIVE folio to post to.
-                    String statusFlag = rs.getString("RESERV_STATUS_FLAG");
-                    event.setInHouse("I".equalsIgnoreCase(statusFlag));
+                    // In-house marker for this schema: RESV_STATUS = 'CHECKED IN'
+                    // (plain English, confirmed against real data — see class
+                    // javadoc). 'I'/'R'/'O' flag handling is kept as a fallback
+                    // in case a future property exposes RESERV_STATUS_FLAG.
+                    String resvStatus = rs.getString("RESV_STATUS");
+                    event.setInHouse(isCheckedIn(resvStatus));
 
                     event.setChangeType(inferChangeType(
-                            rs.getString("RESV_STATUS"),
+                            resvStatus,
                             rs.getTimestamp("INSERT_DATE"),
                             rs.getTimestamp("UPDATE_DATE")));
 
@@ -388,6 +399,20 @@ public class OperaV5DirectConnector implements PmsConnector {
 
     private LocalDate toLocalDate(java.sql.Date date) {
         return date == null ? null : date.toLocalDate();
+    }
+
+    /**
+     * True when the reservation status means the guest is currently in-house.
+     * This property's RESERVATION_NAME has no RESERV_STATUS_FLAG column, so
+     * the plain-English RESV_STATUS ('CHECKED IN') is the marker here; the
+     * 'I' short code is accepted too for installs that do expose the flag.
+     */
+    private boolean isCheckedIn(String resvStatus) {
+        if (resvStatus == null) {
+            return false;
+        }
+        String s = resvStatus.trim();
+        return "CHECKED IN".equalsIgnoreCase(s) || "I".equalsIgnoreCase(s);
     }
 
     /**
