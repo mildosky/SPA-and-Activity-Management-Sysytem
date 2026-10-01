@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${pageTitle}">Manage Shift Templates - Loft</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f5f5f5; color: #333; }
+        .header { background: #2c3e50; color: white; padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; }
+        .header h1 { font-size: 1.5rem; }
+        .nav-links a { color: white; text-decoration: none; margin-left: 1.5rem; padding: 0.5rem 1rem; border-radius: 4px; transition: background 0.2s; }
+        .nav-links a:hover { background: rgba(255,255,255,0.1); }
+        .container { max-width: 1200px; margin: 2rem auto; padding: 0 1rem; }
+        .toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
+        .btn { display: inline-block; padding: 0.75rem 1.5rem; border-radius: 4px; text-decoration: none; font-weight: 500; transition: all 0.2s; border: none; cursor: pointer; }
+        .btn-primary { background: #3498db; color: white; }
+        .btn-primary:hover { background: #2980b9; }
+        .btn-danger { background: #e74c3c; color: white; }
+        .btn-danger:hover { background: #c0392b; }
+        .btn-sm { padding: 0.5rem 1rem; font-size: 0.875rem; }
+        table { width: 100%; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 4px rgba(0,0,0,0.1); border-collapse: collapse; }
+        th, td { padding: 1rem; text-align: left; border-bottom: 1px solid #eee; }
+        th { background: #f8f9fa; font-weight: 600; color: #2c3e50; }
+        tr:hover { background: #f8f9fa; }
+        .success-message { background: #d4edda; color: #155724; padding: 1rem; border-radius: 4px; margin-bottom: 1rem; }
+        .actions { display: flex; gap: 0.5rem; }
+        .days-badge { display: inline-flex; flex-wrap: wrap; gap: 0.25rem; }
+        .day-badge { background: #e3f2fd; color: #1565c0; padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.75rem; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Loft Admin</h1>
+        <nav class="nav-links">
+            <a href="/admin">Dashboard</a>
+            <a href="/admin/catalog">Catalog</a>
+            <a href="/admin/resources">Resources</a>
+            <a href="/admin/shifts">Shifts</a>
+            <a href="/">Guest Booking</a>
+        </nav>
+    </div>
+    
+    <div class="container">
+        <div th:if="${successMessage}" class="success-message" th:text="${successMessage}"></div>
+        
+        <div class="toolbar">
+            <h2>Shift Templates</h2>
+            <a href="/admin/shifts/new" class="btn btn-primary">+ New Shift Template</a>
+        </div>
+        
+        <table>
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Staff Member</th>
+                    <th>Days</th>
+                    <th>Time</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="shift : ${shifts}">
+                    <td th:text="${shift.name}">Morning Shift</td>
+                    <td th:text="${shift.resource.name}">Sarah</td>
+                    <td>
+                        <div class="days-badge">
+                            <span th:each="day : ${shift.daysOfWeek}" class="day-badge" th:text="${#strings.abbreviate(day, 3)}">MON</span>
+                        </div>
+                    </td>
+                    <td th:text="${shift.startTime} + ' - ' + ${shift.endTime}">09:00 - 17:00</td>
+                    <td class="actions">
+                        <a th:href="@{/admin/shifts/edit/{id}(id=${shift.id})}" class="btn btn-primary btn-sm">Edit</a>
+                        <form th:action="@{/admin/shifts/delete/{id}(id=${shift.id})}" method="post" style="display:inline;" onsubmit="return confirm('Are you sure?');">
+                            <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                        </form>
+                    </td>
+                </tr>
+                <tr th:if="${#lists.isEmpty(shifts)}">
+                    <td colspan="5" style="text-align:center; color:#666;">No shift templates found. Create one to get started.</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</body>
+</html>

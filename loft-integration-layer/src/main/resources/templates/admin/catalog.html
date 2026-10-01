@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${pageTitle}">Manage Catalog - Loft</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f5f5f5; color: #333; }
+        .header { background: #2c3e50; color: white; padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; }
+        .header h1 { font-size: 1.5rem; }
+        .nav-links a { color: white; text-decoration: none; margin-left: 1.5rem; padding: 0.5rem 1rem; border-radius: 4px; transition: background 0.2s; }
+        .nav-links a:hover { background: rgba(255,255,255,0.1); }
+        .container { max-width: 1200px; margin: 2rem auto; padding: 0 1rem; }
+        .toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
+        .btn { display: inline-block; padding: 0.75rem 1.5rem; border-radius: 4px; text-decoration: none; font-weight: 500; transition: all 0.2s; border: none; cursor: pointer; }
+        .btn-primary { background: #3498db; color: white; }
+        .btn-primary:hover { background: #2980b9; }
+        .btn-danger { background: #e74c3c; color: white; }
+        .btn-danger:hover { background: #c0392b; }
+        .btn-sm { padding: 0.5rem 1rem; font-size: 0.875rem; }
+        table { width: 100%; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 4px rgba(0,0,0,0.1); border-collapse: collapse; }
+        th, td { padding: 1rem; text-align: left; border-bottom: 1px solid #eee; }
+        th { background: #f8f9fa; font-weight: 600; color: #2c3e50; }
+        tr:hover { background: #f8f9fa; }
+        .success-message { background: #d4edda; color: #155724; padding: 1rem; border-radius: 4px; margin-bottom: 1rem; }
+        .actions { display: flex; gap: 0.5rem; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Loft Admin</h1>
+        <nav class="nav-links">
+            <a href="/admin">Dashboard</a>
+            <a href="/admin/catalog">Catalog</a>
+            <a href="/admin/resources">Resources</a>
+            <a href="/admin/shifts">Shifts</a>
+            <a href="/">Guest Booking</a>
+        </nav>
+    </div>
+    
+    <div class="container">
+        <div th:if="${successMessage}" class="success-message" th:text="${successMessage}"></div>
+        
+        <div class="toolbar">
+            <h2>Activity Catalog</h2>
+            <a href="/admin/catalog/new" class="btn btn-primary">+ New Activity Type</a>
+        </div>
+        
+        <table>
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Category</th>
+                    <th>Duration (min)</th>
+                    <th>Price</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="activity : ${activityTypes}">
+                    <td th:text="${activity.name}">Activity Name</td>
+                    <td th:text="${activity.category}">Category</td>
+                    <td th:text="${activity.defaultDurationMinutes}">60</td>
+                    <td th:text="${activity.price} + ' ' + ${activity.currency}">$100.00 USD</td>
+                    <td class="actions">
+                        <a th:href="@{/admin/catalog/edit/{id}(id=${activity.id})}" class="btn btn-primary btn-sm">Edit</a>
+                        <form th:action="@{/admin/catalog/delete/{id}(id=${activity.id})}" method="post" style="display:inline;" onsubmit="return confirm('Are you sure?');">
+                            <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                        </form>
+                    </td>
+                </tr>
+                <tr th:if="${#lists.isEmpty(activityTypes)}">
+                    <td colspan="5" style="text-align:center; color:#666;">No activity types found. Create one to get started.</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</body>
+</html>
