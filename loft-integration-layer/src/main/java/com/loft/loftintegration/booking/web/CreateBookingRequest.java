@@ -17,11 +17,11 @@ public record CreateBookingRequest(
 ) {
     public CreateBookingRequest {
         if (propertyCode == null) {
-            propertyCode = "LOFT";
+            propertyCode = com.loft.loftintegration.config.LoftProperties.DEFAULT_PROPERTY_CODE;
         }
     }
     
     public CreateBookingRequest() {
-        this("LOFT", null, null, null, null, null, null, null, null, null);
+        this(com.loft.loftintegration.config.LoftProperties.DEFAULT_PROPERTY_CODE, null, null, null, null, null, null, null, null, null);
     }
 }

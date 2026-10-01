@@ -1,5 +1,6 @@
 package com.loft.loftintegration.runtime;
 
+import com.loft.loftintegration.config.LoftProperties;
 import com.loft.loftintegration.config.PropertyConfigLoader;
 import com.loft.loftintegration.config.PropertyProfile;
 import com.loft.loftintegration.connector.opera.OperaV5DirectConnector;
@@ -33,12 +34,15 @@ public class OperaSyncStartup implements ApplicationRunner {
     private static final Logger log = LoggerFactory.getLogger(OperaSyncStartup.class);
 
     private final SyncEngine syncEngine;
+    private final LoftProperties loftProperties;
     private final String propertyConfigPath;
 
     public OperaSyncStartup(
             SyncEngine syncEngine,
+            LoftProperties loftProperties,
             @Value("${loft-integration.property-config-path}") String propertyConfigPath) {
         this.syncEngine = syncEngine;
+        this.loftProperties = loftProperties;
         this.propertyConfigPath = propertyConfigPath;
     }
 
@@ -65,6 +69,11 @@ public class OperaSyncStartup implements ApplicationRunner {
             log.warn("property-profile.yml at {} loaded but contained no properties.", propertyConfigPath);
             return;
         }
+
+        // Adopt the profile's property code app-wide so kiosk/admin/billing
+        // and the connector registry all speak the same code (fixes the
+        // "No live Opera connector is registered for property LOFT" mismatch).
+        loftProperties.registerFromProfiles(properties);
 
         for (PropertyProfile property : properties) {
             registerProperty(property);

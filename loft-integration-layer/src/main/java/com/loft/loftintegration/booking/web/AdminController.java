@@ -28,13 +28,17 @@ public class AdminController {
     private final ActivityTypeRepository activityTypeRepository;
     private final ResourceRepository resourceRepository;
     private final ShiftTemplateRepository shiftTemplateRepository;
+    /** The property this install serves (adopted from property-profile.yml at startup). */
+    private String PROPERTY_CODE = com.loft.loftintegration.config.LoftProperties.DEFAULT_PROPERTY_CODE;
 
     public AdminController(ActivityTypeRepository activityTypeRepository,
                            ResourceRepository resourceRepository,
-                           ShiftTemplateRepository shiftTemplateRepository) {
+                           ShiftTemplateRepository shiftTemplateRepository,
+                           com.loft.loftintegration.config.LoftProperties loftProperties) {
         this.activityTypeRepository = activityTypeRepository;
         this.resourceRepository = resourceRepository;
         this.shiftTemplateRepository = shiftTemplateRepository;
+        this.PROPERTY_CODE = loftProperties.currentPropertyCode();
     }
 
     @GetMapping
@@ -46,7 +50,7 @@ public class AdminController {
     // ========== Activity Types (Catalog) Management ==========
 
     @GetMapping("/catalog")
-    public String listActivityTypes(@RequestParam(name = "propertyCode", defaultValue = "LOFT") String propertyCode, Model model) {
+    public String listActivityTypes(@RequestParam(name = "propertyCode", defaultValue = com.loft.loftintegration.config.LoftProperties.DEFAULT_PROPERTY_CODE) String propertyCode, Model model) {
         List<ActivityType> activityTypes = activityTypeRepository.findByPropertyCode(propertyCode);
         model.addAttribute("activityTypes", activityTypes);
         model.addAttribute("propertyCode", propertyCode);
@@ -58,7 +62,7 @@ public class AdminController {
     public String newActivityTypeForm(Model model) {
         model.addAttribute("activityType", new ActivityTypeForm());
         model.addAttribute("categories", ActivityCategory.values());
-        model.addAttribute("propertyCode", "LOFT");
+        model.addAttribute("propertyCode", PROPERTY_CODE);
         model.addAttribute("pageTitle", "New Activity Type - Loft");
         return "admin/activity-type-form";
     }
@@ -71,7 +75,7 @@ public class AdminController {
                 .orElseThrow(() -> new IllegalArgumentException("ActivityType not found"));
         } else {
             activityType = new ActivityType(
-                "LOFT",
+                PROPERTY_CODE,
                 form.getName(),
                 ActivityCategory.valueOf(form.getCategory()),
                 form.getDefaultDurationMinutes(),
@@ -111,7 +115,7 @@ public class AdminController {
     // ========== Resources Management ==========
 
     @GetMapping("/resources")
-    public String listResources(@RequestParam(name = "propertyCode", defaultValue = "LOFT") String propertyCode, Model model) {
+    public String listResources(@RequestParam(name = "propertyCode", defaultValue = com.loft.loftintegration.config.LoftProperties.DEFAULT_PROPERTY_CODE) String propertyCode, Model model) {
         List<Resource> allResources = resourceRepository.findAll();
         List<Resource> resources = allResources.stream()
             .filter(r -> r.getPropertyCode().equals(propertyCode))
@@ -139,7 +143,7 @@ public class AdminController {
                 .orElseThrow(() -> new IllegalArgumentException("Resource not found"));
         } else {
             resource = new Resource(
-                "LOFT",
+                PROPERTY_CODE,
                 ResourceType.valueOf(form.getResourceType()),
                 form.getName()
             );
@@ -185,7 +189,7 @@ public class AdminController {
     @GetMapping("/shifts/new")
     public String newShiftTemplateForm(Model model) {
         model.addAttribute("shiftTemplate", new ShiftTemplateForm());
-        model.addAttribute("resources", resourceRepository.findByPropertyCodeAndResourceTypeAndActiveTrue("LOFT", ResourceType.STAFF));
+        model.addAttribute("resources", resourceRepository.findByPropertyCodeAndResourceTypeAndActiveTrue(PROPERTY_CODE, ResourceType.STAFF));
         model.addAttribute("daysOfWeek", Arrays.stream(DayOfWeek.values()).map(Enum::name).collect(Collectors.toList()));
         model.addAttribute("pageTitle", "New Shift Template - Loft");
         return "admin/shift-template-form";
@@ -230,7 +234,7 @@ public class AdminController {
         form.setStartTime(shift.getStartTime().toString());
         form.setEndTime(shift.getEndTime().toString());
         model.addAttribute("shiftTemplate", form);
-        model.addAttribute("resources", resourceRepository.findByPropertyCodeAndResourceTypeAndActiveTrue("LOFT", ResourceType.STAFF));
+        model.addAttribute("resources", resourceRepository.findByPropertyCodeAndResourceTypeAndActiveTrue(PROPERTY_CODE, ResourceType.STAFF));
         model.addAttribute("daysOfWeek", Arrays.stream(DayOfWeek.values()).map(Enum::name).collect(Collectors.toList()));
         model.addAttribute("pageTitle", "Edit Shift Template - Loft");
         return "admin/shift-template-form";

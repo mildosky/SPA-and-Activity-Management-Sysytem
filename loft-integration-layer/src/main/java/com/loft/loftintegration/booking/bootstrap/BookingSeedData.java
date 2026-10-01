@@ -3,6 +3,7 @@ package com.loft.loftintegration.booking.bootstrap;
 import com.loft.loftintegration.booking.model.*;
 import com.loft.loftintegration.booking.repository.ActivityTypeRepository;
 import com.loft.loftintegration.booking.repository.ResourceRepository;
+import com.loft.loftintegration.config.LoftProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.ApplicationArguments;
@@ -30,18 +31,30 @@ import org.springframework.stereotype.Component;
 public class BookingSeedData implements ApplicationRunner {
 
     private static final Logger log = LoggerFactory.getLogger(BookingSeedData.class);
-    private static final String PROPERTY_CODE = "LOFT";
 
     private final ActivityTypeRepository activityTypeRepository;
     private final ResourceRepository resourceRepository;
+    private final LoftProperties loftProperties;
 
-    public BookingSeedData(ActivityTypeRepository activityTypeRepository, ResourceRepository resourceRepository) {
+    public BookingSeedData(ActivityTypeRepository activityTypeRepository, ResourceRepository resourceRepository,
+                           LoftProperties loftProperties) {
         this.activityTypeRepository = activityTypeRepository;
         this.resourceRepository = resourceRepository;
+        this.loftProperties = loftProperties;
     }
 
+    /**
+     * One-time repair: seed data was created under the hard-coded "LOFT"
+     * code before the app adopted the real property code from
+     * property-profile.yml (e.g. "TGL"). Without this, screens querying by
+     * the adopted code would show an empty catalog on existing installs.
+     */
     @Override
     public void run(ApplicationArguments args) {
+        String PROPERTY_CODE = loftProperties.currentPropertyCode();
+        if (!PROPERTY_CODE.equals(com.loft.loftintegration.config.LoftProperties.DEFAULT_PROPERTY_CODE)) {
+            migrateLegacyLoftData(PROPERTY_CODE);
+        }
         if (!activityTypeRepository.findByPropertyCode(PROPERTY_CODE).isEmpty()) {
             log.debug("Booking seed data already present for {}, skipping.", PROPERTY_CODE);
             return;

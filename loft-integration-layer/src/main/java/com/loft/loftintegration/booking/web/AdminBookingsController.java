@@ -34,24 +34,36 @@ import java.util.Map;
 @RequestMapping("/admin/bookings")
 public class AdminBookingsController {
 
-    private static final String PROPERTY_CODE = "LOFT";
+    /** The property this install serves (adopted from property-profile.yml at startup). */
+    private String PROPERTY_CODE = com.loft.loftintegration.config.LoftProperties.DEFAULT_PROPERTY_CODE;
 
     private final BookingRepository bookingRepository;
     private final BookingService bookingService;
     private final GuestDirectoryService guestDirectoryService;
     private final BillingService billingService;
     private final ChargeRepository chargeRepository;
+    private final com.loft.loftintegration.sync.BusinessDateHolder businessDateHolder;
+    private final com.loft.loftintegration.config.LoftProperties loftProperties;
 
     public AdminBookingsController(BookingRepository bookingRepository,
                                    BookingService bookingService,
                                    GuestDirectoryService guestDirectoryService,
                                    BillingService billingService,
-                                   ChargeRepository chargeRepository) {
+                                   ChargeRepository chargeRepository,
+                                   com.loft.loftintegration.sync.BusinessDateHolder businessDateHolder,
+                                   com.loft.loftintegration.config.LoftProperties loftProperties) {
         this.bookingRepository = bookingRepository;
         this.bookingService = bookingService;
         this.guestDirectoryService = guestDirectoryService;
         this.billingService = billingService;
         this.chargeRepository = chargeRepository;
+        this.businessDateHolder = businessDateHolder;
+        this.loftProperties = loftProperties;
+    }
+
+    @jakarta.annotation.PostConstruct
+    void resolvePropertyCode() {
+        this.PROPERTY_CODE = loftProperties.currentPropertyCode();
     }
 
     @GetMapping
@@ -93,8 +105,12 @@ public class AdminBookingsController {
         model.addAttribute("guestNames", guestNames);
         model.addAttribute("charges", charges);
         model.addAttribute("statuses", BookingStatus.values());
-        model.addAttribute("selectedDate", date != null ? date : LocalDate.now());
-        model.addAttribute("today", LocalDate.now());
+        // Default the date filter to Opera's business date, not the system
+        // date — kiosk bookings are created against the PMS's "today", and
+        // lab/test Opera environments are deliberately backdated.
+        LocalDate operaToday = businessDateHolder.today();
+        model.addAttribute("selectedDate", date != null ? date : operaToday);
+        model.addAttribute("today", operaToday);
         model.addAttribute("selectedStatus", status);
         model.addAttribute("pageTitle", "Bookings - Loft Admin");
         return "admin/bookings";

@@ -21,16 +21,19 @@ import java.math.BigDecimal;
 public class RetailItemSeedData implements ApplicationRunner {
 
     private static final Logger log = LoggerFactory.getLogger(RetailItemSeedData.class);
-    private static final String PROPERTY_CODE = "LOFT";
 
     private final RetailItemRepository retailItemRepository;
+    private final com.loft.loftintegration.config.LoftProperties loftProperties;
 
-    public RetailItemSeedData(RetailItemRepository retailItemRepository) {
+    public RetailItemSeedData(RetailItemRepository retailItemRepository,
+                              com.loft.loftintegration.config.LoftProperties loftProperties) {
         this.retailItemRepository = retailItemRepository;
+        this.loftProperties = loftProperties;
     }
 
     @Override
     public void run(ApplicationArguments args) {
+        String PROPERTY_CODE = loftProperties.currentPropertyCode();
         if (!retailItemRepository.findByPropertyCodeAndActiveTrue(PROPERTY_CODE).isEmpty()) {
             log.debug("Retail item seed data already present for {}, skipping.", PROPERTY_CODE);
             return;

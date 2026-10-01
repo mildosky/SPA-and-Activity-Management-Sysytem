@@ -41,6 +41,18 @@ public interface PmsConnector {
     boolean isConnected();
 
     /**
+     * The PMS's own current business date, captured at connect() time.
+     * Returns null when unknown (connector not yet connected, or the PMS
+     * doesn't expose one). Downstream "today" logic must prefer this over
+     * the system date — Opera lab/test environments are deliberately
+     * backdated, and even in production the business date can lag the
+     * calendar date until night audit runs.
+     */
+    default java.time.LocalDate currentBusinessDate() {
+        return null;
+    }
+
+    /**
      * Pull reservation changes (new, modified, cancelled) since the connector's
      * last checkpoint. Checkpointing strategy is connector-specific (e.g. a
      * timestamp column for direct DB access, a webhook cursor for OHIP).

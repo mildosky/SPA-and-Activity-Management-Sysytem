@@ -43,21 +43,34 @@ public class SyncEngine {
     private final InHouseReservationService inHouseReservationService;
     private final ReservationEventConsumer reservationEventConsumer;
     private final FolioEventConsumer folioEventConsumer;
+    private final BusinessDateHolder businessDateHolder;
 
     public SyncEngine(GuestDirectoryService guestDirectoryService,
                       InHouseReservationService inHouseReservationService,
                       ReservationEventConsumer reservationEventConsumer,
-                      FolioEventConsumer folioEventConsumer) {
+                      FolioEventConsumer folioEventConsumer,
+                      BusinessDateHolder businessDateHolder) {
         this.guestDirectoryService = guestDirectoryService;
         this.inHouseReservationService = inHouseReservationService;
         this.reservationEventConsumer = reservationEventConsumer;
         this.folioEventConsumer = folioEventConsumer;
+        this.businessDateHolder = businessDateHolder;
     }
 
     /** Registers and connects a connector for one property. Call once per configured property at startup. */
     public void registerProperty(PropertyProfile property, PmsConnector connector) throws PmsConnectionException {
         connector.connect(property);
         connectorsByProperty.put(property.getPropertyCode(), connector);
+        // Publish Opera's business date app-wide so in-house/kiosk logic
+        // uses the PMS's "today" instead of the system clock. Lab and test
+        // environments are deliberately backdated (e.g. 03/03/2023), which
+        // previously made every synced reservation look already checked out.
+        java.time.LocalDate businessDate = connector.currentBusinessDate();
+        if (businessDate != null) {
+            businessDateHolder.set(businessDate);
+            log.info("Opera business date for property {} is {} — all \"today\" checks will use it",
+                    property.getPropertyCode(), businessDate);
+        }
         log.info("Connected {} for property {}", connector.connectorId(), property.getPropertyCode());
     }
 

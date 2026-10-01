@@ -63,6 +63,7 @@ public class ActivityType {
 
     public Long getId() { return id; }
     public String getPropertyCode() { return propertyCode; }
+    public void setPropertyCode(String propertyCode) { this.propertyCode = propertyCode; }
     public String getName() { return name; }
     public ActivityCategory getCategory() { return category; }
     public int getDefaultDurationMinutes() { return defaultDurationMinutes; }

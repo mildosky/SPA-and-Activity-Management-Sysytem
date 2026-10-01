@@ -67,6 +67,12 @@ public class OperaV5DirectConnector implements PmsConnector {
     private LocalDateTime guestProfileCheckpoint;
     private LocalDateTime folioCheckpoint;
 
+    // Opera's own "today", captured in connect(). Exposed via
+    // currentBusinessDate() so SyncEngine can publish it app-wide —
+    // in-house checks must use this, not the JVM clock (lab environments
+    // are deliberately backdated; see BusinessDateHolder).
+    private LocalDate operaBusinessDate;
+
     @Override
     public String connectorId() {
         return "opera-v5-direct";
@@ -112,6 +118,7 @@ public class OperaV5DirectConnector implements PmsConnector {
         // night audit runs.
         try {
             LocalDate businessDate = resolveOperaBusinessDate();
+            this.operaBusinessDate = businessDate;
             // One day back from Opera's business date is a reasonable
             // starting window — wide enough to catch anything posted
             // "today" in Opera's terms, narrow enough not to re-pull
@@ -172,6 +179,11 @@ public class OperaV5DirectConnector implements PmsConnector {
         } catch (SQLException e) {
             return false;
         }
+    }
+
+    @Override
+    public LocalDate currentBusinessDate() {
+        return operaBusinessDate;
     }
 
     @Override

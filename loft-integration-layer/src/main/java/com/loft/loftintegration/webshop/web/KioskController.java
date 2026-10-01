@@ -33,21 +33,33 @@ import java.util.List;
 @RequestMapping("/kiosk")
 public class KioskController {
 
-    private static final String PROPERTY_CODE = "LOFT";
+    private final com.loft.loftintegration.config.LoftProperties loftProperties;
+    /** The property this install serves (adopted from property-profile.yml at startup). */
+    private String PROPERTY_CODE = com.loft.loftintegration.config.LoftProperties.DEFAULT_PROPERTY_CODE;
 
     private final BookingService bookingService;
     private final BillingService billingService;
     private final InHouseReservationService inHouseReservationService;
     private final OperaGuestMirrorRepository guestMirrorRepository;
+    private final com.loft.loftintegration.sync.BusinessDateHolder businessDateHolder;
 
     public KioskController(BookingService bookingService,
                            BillingService billingService,
                            InHouseReservationService inHouseReservationService,
-                           OperaGuestMirrorRepository guestMirrorRepository) {
+                           OperaGuestMirrorRepository guestMirrorRepository,
+                           com.loft.loftintegration.sync.BusinessDateHolder businessDateHolder,
+                           com.loft.loftintegration.config.LoftProperties loftProperties) {
         this.bookingService = bookingService;
         this.billingService = billingService;
         this.inHouseReservationService = inHouseReservationService;
         this.guestMirrorRepository = guestMirrorRepository;
+        this.businessDateHolder = businessDateHolder;
+        this.loftProperties = loftProperties;
+    }
+
+    @jakarta.annotation.PostConstruct
+    void resolvePropertyCode() {
+        this.PROPERTY_CODE = loftProperties.currentPropertyCode();
     }
 
     @GetMapping
@@ -62,7 +74,10 @@ public class KioskController {
     public String selectActivity(@PathVariable Long id, Model model) {
         ActivityType activity = bookingService.getActivityType(id);
 
-        LocalDate today = LocalDate.now();
+        // Date picker starts at Opera's business date, not the system date —
+        // lab/test Opera environments are backdated (e.g. 03/03/2023), and
+        // availability slots must line up with the PMS's notion of "today".
+        LocalDate today = businessDateHolder.today();
         List<LocalDate> next7Days = java.util.stream.IntStream.range(0, 7)
             .mapToObj(i -> today.plusDays(i))
             .toList();

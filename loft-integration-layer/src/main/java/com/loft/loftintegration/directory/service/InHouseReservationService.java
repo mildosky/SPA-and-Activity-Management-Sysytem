@@ -29,11 +29,25 @@ public class InHouseReservationService {
 
     private final InHouseReservationMirrorRepository repository;
     private final GuestDirectoryService guestDirectoryService;
+    private final com.loft.loftintegration.sync.BusinessDateHolder businessDateHolder;
 
     public InHouseReservationService(InHouseReservationMirrorRepository repository,
-                                      GuestDirectoryService guestDirectoryService) {
+                                      GuestDirectoryService guestDirectoryService,
+                                      com.loft.loftintegration.sync.BusinessDateHolder businessDateHolder) {
         this.repository = repository;
         this.guestDirectoryService = guestDirectoryService;
+        this.businessDateHolder = businessDateHolder;
+    }
+
+    /**
+     * "Today" for in-house purposes is Opera's business date, NOT the JVM
+     * system date. The Opera test/lab environments are deliberately
+     * backdated (e.g. 03/03/2023), so LocalDate.now() made every synced
+     * reservation look already checked out and no in-house guest was ever
+     * found. Falls back to the system date before any property connects.
+     */
+    private LocalDate operaToday() {
+        return businessDateHolder.today();
     }
 
     @Transactional
@@ -72,7 +86,7 @@ public class InHouseReservationService {
     /** Prune rows whose stay has ended (departure before today). Called after each poll pass. */
     @Transactional
     public void pruneCheckedOut() {
-        LocalDate today = LocalDate.now();
+        LocalDate today = operaToday();
         List<InHouseReservationMirror> stale = repository.findAll().stream()
                 .filter(m -> m.getDepartureDate() == null || m.getDepartureDate().isBefore(today))
                 .toList();
@@ -84,7 +98,7 @@ public class InHouseReservationService {
     /** All guests currently checked in at this property — drives the kiosk "I'm staying here" picker. */
     @Transactional(readOnly = true)
     public List<InHouseReservationMirror> findInHouseGuests(String propertyCode) {
-        LocalDate today = LocalDate.now();
+        LocalDate today = operaToday();
         return repository.findByPropertyCode(propertyCode).stream()
                 .filter(m -> m.isCurrentlyInHouse(today))
                 .sorted((a, b) -> String.valueOf(a.getLastName()).compareToIgnoreCase(String.valueOf(b.getLastName())))
@@ -93,7 +107,7 @@ public class InHouseReservationService {
 
     @Transactional(readOnly = true)
     public Optional<InHouseReservationMirror> findByGuestProfileId(String guestProfileId) {
-        LocalDate today = LocalDate.now();
+        LocalDate today = operaToday();
         return repository.findByGuestProfileId(guestProfileId)
                 .filter(m -> m.isCurrentlyInHouse(today));
     }
