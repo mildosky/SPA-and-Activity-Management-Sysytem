@@ -1,0 +1,104 @@
+server:
+  port: 8080
+  error:
+    # Spring Boot strips the "message" field from error JSON responses
+    # by default (security default — avoids leaking internals to
+    # untrusted clients). This app's ResponseStatusException messages
+    # are deliberately specific and useful (e.g. naming exactly which
+    # resource ran short, or that a shift-check failed vs. a plain
+    # double-booking) — worth actually seeing them. Revisit before this
+    # ever faces genuinely untrusted/public clients; "always" is fine
+    # for internal/dev use, not necessarily for a public-facing API.
+    include-message: always
+
+loft-integration:
+  # Path to the property profile file this install should load at startup.
+  property-config-path: ./config/property-profile.yml
+  # How often (seconds) the sync engine polls each connected property.
+  poll-interval-seconds: 60
+  # OFF by default on purpose — OperaV5DirectConnector.postFolioCharge()
+  # is built from unverified FINANCIAL_TRANSACTIONS column values
+  # (TRX_CODE, FT_SUBTYPE, TC_GROUP, TC_SUBGROUP — see that method's
+  # class doc for exactly what needs confirming against this specific
+  # Opera install before this is safe to enable). Charges still get
+  # created and billed within this system either way (marked
+  # POSTED_LOCALLY instead) — this flag only controls whether they ALSO
+  # get written to Opera's live database.
+  opera-folio-posting-enabled: false
+  # Global business hours used by AvailableSlotsService when generating
+  # candidate booking slots. One setting for every property/activity —
+  # NOT per-property yet (see README: that would need a real Property
+  # domain concept on the booking side, which doesn't exist). Still a
+  # real improvement over the previous hardcoded 9am-6pm in Java: this
+  # is now a config change, not a code change, to adjust.
+  business-hours:
+    open-time: "09:00"
+    close-time: "18:00"
+
+logging:
+  level:
+    com.loft.loftintegration: INFO
+
+# Booking module's own database — H2 Database Engine for development/testing.
+# For production deployments, switch to Oracle Database (see commented section below),
+# matching Opera PMS architecture.
+#
+# Schema is managed by Flyway (see src/main/resources/db/migration/) instead
+# of ddl-auto: update — directly fixes the "any schema change means wipe
+# the whole dev database" problem hit repeatedly during development (lounger
+# resources, shift templates, retail items, and the price column all needed
+# a wipe or a separate-guard seed-data workaround under ddl-auto: update).
+# Future schema changes are new migration files (V2__..., V3__...), not
+# silent auto-alterations — appropriate for something that'll eventually
+# hold a real customer's data.
+#
+# ddl-auto: validate (not none) is a deliberate safety net: Hibernate
+# checks the Flyway-created schema actually matches what the @Entity
+# classes expect, and fails LOUDLY at startup with a specific
+# column/type mismatch if not — rather than silently running against
+# a subtly wrong schema. If you ever see a "Schema-validation" error
+# at startup, that error names the exact mismatch to fix in the
+# migration file.
+spring:
+  datasource:
+    url: jdbc:h2:file:./data/loftbooking
+    driver-class-name: org.h2.Driver
+    username: sa
+    password: 
+  flyway:
+    enabled: false
+  jpa:
+    hibernate:
+      ddl-auto: update
+    open-in-view: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.H2Dialect
+        format_sql: true
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+
+# PRODUCTION DATABASE CONFIGURATION (Oracle Database):
+# Uncomment this section and comment out the H2 configuration above for production.
+# Replace the placeholder values below with your actual Oracle connection details.
+# Recommended: Use environment variables or external config for credentials in production.
+#
+# spring:
+#   datasource:
+#     url: jdbc:oracle:thin:@localhost:1521/ORCL
+#     driver-class-name: oracle.jdbc.OracleDriver
+#     username: ${LOFT_DB_USERNAME:loftuser}
+#     password: ${LOFT_DB_PASSWORD:loftpassword}
+#   flyway:
+#     enabled: true
+#   jpa:
+#     hibernate:
+#       ddl-auto: validate
+#     open-in-view: false
+#     properties:
+#       hibernate:
+#         dialect: org.hibernate.dialect.OracleDialect
+#         format_sql: true
+
