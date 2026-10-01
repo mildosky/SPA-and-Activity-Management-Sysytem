@@ -58,9 +58,9 @@
                 <h3 style="margin-bottom: 1rem;">Available Times for <span id="selectedDateText"></span></h3>
                 <div class="times-grid">
                     <button class="time-btn" th:each="hour : ${#numbers.sequence(9, 17)}"
-                            th:attr="data-time=${hour + ':00'}"
+                            th:attr="data-time=${#strings.toString(hour).length() == 1 ? '0' + hour + ':00' : hour + ':00'}"
                             onclick="selectTime(this)"
-                            th:text="${hour} + ':00'">9:00</button>
+                            th:text="${#strings.toString(hour).length() == 1 ? '0' + hour + ':00' : hour + ':00'}">09:00</button>
                 </div>
             </div>
 

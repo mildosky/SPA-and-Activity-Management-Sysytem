@@ -85,6 +85,14 @@ public class Charge {
     public String getPropertyCode() { return propertyCode; }
     public String getGuestProfileId() { return guestProfileId; }
     public String getOperaReservationId() { return operaReservationId; }
+
+    /**
+     * Links this charge to the Opera reservation it should post against.
+     * Used when a booking was created before we knew the guest's live
+     * in-house stay (e.g. email-matched profile), and the folio link is
+     * resolved later.
+     */
+    public void setOperaReservationId(String operaReservationId) { this.operaReservationId = operaReservationId; }
     public BigDecimal getAmount() { return amount; }
     public String getCurrency() { return currency; }
     public String getDescription() { return description; }

@@ -22,6 +22,12 @@ public class ReservationEvent {
     private LocalDate departureDate;
     private String roomType;
     private String roomNumber;
+    /**
+     * True when this reservation is an active in-house stay (checked-in
+     * or arrived, not yet departed/cancelled). Connector-specific how it's
+     * determined — for Opera v5 direct it's RESERV_STATUS_FLAG='I'.
+     */
+    private boolean inHouse;
     private ChangeType changeType;
     private LocalDateTime eventTimestamp;
 
@@ -30,7 +36,8 @@ public class ReservationEvent {
 
     public ReservationEvent(String reservationId, String propertyCode, String guestProfileId,
                              LocalDate arrivalDate, LocalDate departureDate, String roomType,
-                             String roomNumber, ChangeType changeType, LocalDateTime eventTimestamp) {
+                             String roomNumber, boolean inHouse, ChangeType changeType,
+                             LocalDateTime eventTimestamp) {
         this.reservationId = reservationId;
         this.propertyCode = propertyCode;
         this.guestProfileId = guestProfileId;
@@ -38,6 +45,7 @@ public class ReservationEvent {
         this.departureDate = departureDate;
         this.roomType = roomType;
         this.roomNumber = roomNumber;
+        this.inHouse = inHouse;
         this.changeType = changeType;
         this.eventTimestamp = eventTimestamp;
     }
@@ -64,6 +72,9 @@ public class ReservationEvent {
 
     public String getRoomNumber() { return roomNumber; }
     public void setRoomNumber(String roomNumber) { this.roomNumber = roomNumber; }
+
+    public boolean isInHouse() { return inHouse; }
+    public void setInHouse(boolean inHouse) { this.inHouse = inHouse; }
 
     public ChangeType getChangeType() { return changeType; }
     public void setChangeType(ChangeType changeType) { this.changeType = changeType; }

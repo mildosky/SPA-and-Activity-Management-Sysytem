@@ -71,7 +71,10 @@ public class KioskController {
         ActivityType activity = activityTypeRepository.findById(id)
             .orElseThrow(() -> new IllegalArgumentException("Activity not found"));
         
-        LocalDateTime startDateTime = LocalDateTime.parse(date + "T" + time);
+        // Normalize the incoming time (e.g. "9:00") to ISO-8601 ("09:00") so that
+        // LocalDateTime.parse never fails on single-digit hours.
+        LocalTime startTime = LocalTime.parse(time.length() == 4 ? "0" + time : time);
+        LocalDateTime startDateTime = LocalDate.parse(date).atTime(startTime);
         
         // Create a simple guest info form
         model.addAttribute("activity", activity);

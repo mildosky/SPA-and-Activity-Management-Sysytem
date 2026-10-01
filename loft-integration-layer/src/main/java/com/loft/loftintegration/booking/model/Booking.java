@@ -43,6 +43,10 @@ public class Booking {
     @Column(nullable = true)
     private String operaReservationId;
 
+    /** True when the guest was identified as checked-in in Opera at booking time (folio posting target). */
+    @Column(nullable = false)
+    private boolean inHouseGuest = false;
+
     /**
      * Display name captured at booking time (kiosk/webshop guest entry).
      * Nullable: staff-created or Opera-sourced bookings may only have a

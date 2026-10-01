@@ -82,6 +82,51 @@ public class BillingService {
     }
 
     /**
+     * Staff action: post this charge onto the guest's Opera room folio NOW —
+     * resolving their current in-house reservation if the booking didn't
+     * already carry one. This is the explicit "post to Opera" step staff see
+     * on the bookings screen after completing an appointment.
+     *
+     * Returns a human-readable outcome for the UI flash message. Never throws:
+     * failures leave the charge PENDING so it can be retried.
+     */
+    @Transactional
+    public String postChargeToOpera(Long chargeId) {
+        Charge charge = chargeRepository.findById(chargeId)
+                .orElseThrow(() -> new java.util.NoSuchElementException("No Charge with id " + chargeId));
+
+        if (charge.getStatus() == ChargeStatus.POSTED_TO_OPERA) {
+            return "Charge was already posted to Opera.";
+        }
+        if (!operaFolioPostingEnabled) {
+            return "Opera folio posting is disabled (loft-integration.opera-folio-posting-enabled). "
+                    + "Enable it in application.yml to write charges to Opera.";
+        }
+        if (!syncEngine.hasProperty(charge.getPropertyCode())) {
+            return "No live Opera connector is registered for property " + charge.getPropertyCode()
+                    + " — check the property profile config and Opera connectivity.";
+        }
+        if (charge.getOperaReservationId() == null) {
+            return "This charge has no Opera reservation link — the guest must be identified as an "
+                    + "in-house guest (or the booking linked to their stay) before it can post to a folio.";
+        }
+
+        try {
+            syncEngine.postFolioCharge(charge.getPropertyCode(), charge.getOperaReservationId(),
+                    charge.getAmount(), charge.getCurrency(), charge.getDescription());
+            charge.setStatus(ChargeStatus.POSTED_TO_OPERA);
+            charge.setPostedAt(java.time.LocalDateTime.now());
+            chargeRepository.save(charge);
+            log.info("Charge {} manually posted to Opera folio for reservation {}.",
+                    charge.getId(), charge.getOperaReservationId());
+            return "Posted to Opera folio (reservation " + charge.getOperaReservationId() + ").";
+        } catch (PmsConnectionException e) {
+            log.error("Manual post of charge {} to Opera failed — left PENDING for retry.", charge.getId(), e);
+            return "Opera post FAILED (left pending for retry): " + e.getMessage();
+        }
+    }
+
+    /**
      * Tries to post a charge to Opera if posting is enabled AND the
      * charge has a real Opera reservation to post against. Falls back
      * to POSTED_LOCALLY otherwise — a charge is never left stuck in

@@ -180,7 +180,7 @@ public class OperaV5DirectConnector implements PmsConnector {
         // text/number format alignment hasn't been confirmed end to end.
         String sql = """
                 SELECT rn.RESV_NAME_ID, rn.RESORT, rn.NAME_ID, rn.BEGIN_DATE, rn.END_DATE,
-                       rn.RESV_STATUS, rn.INSERT_DATE, rn.UPDATE_DATE,
+                       rn.RESV_STATUS, rn.RESERV_STATUS_FLAG, rn.INSERT_DATE, rn.UPDATE_DATE,
                        sr.ROOM_NUMBER, sr.ROOM_LABEL
                 FROM RESERVATION_NAME rn
                 LEFT JOIN STAY_RECORDS sr ON sr.PMS_RESV_NAME_ID = TO_CHAR(rn.RESV_NAME_ID)
@@ -212,6 +212,13 @@ public class OperaV5DirectConnector implements PmsConnector {
                     // real room type description is needed later.
                     event.setRoomType(null);
                     event.setRoomNumber(rs.getString("ROOM_NUMBER"));
+
+                    // RESERV_STATUS_FLAG is Opera's canonical in-house marker:
+                    // 'I' = checked-in/in-house, 'R' = reserved (not arrived),
+                    // 'O' = departed/checked-out. This is what lets a kiosk
+                    // booking know the guest has a LIVE folio to post to.
+                    String statusFlag = rs.getString("RESERV_STATUS_FLAG");
+                    event.setInHouse("I".equalsIgnoreCase(statusFlag));
 
                     event.setChangeType(inferChangeType(
                             rs.getString("RESV_STATUS"),

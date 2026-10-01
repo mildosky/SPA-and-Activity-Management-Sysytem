@@ -4,6 +4,7 @@ import com.loft.loftintegration.config.PropertyProfile;
 import com.loft.loftintegration.connector.PmsConnectionException;
 import com.loft.loftintegration.connector.PmsConnector;
 import com.loft.loftintegration.directory.service.GuestDirectoryService;
+import com.loft.loftintegration.directory.service.InHouseReservationService;
 import com.loft.loftintegration.sync.consumer.FolioEventConsumer;
 import com.loft.loftintegration.sync.consumer.ReservationEventConsumer;
 import com.loft.loftintegration.sync.model.FolioEvent;
@@ -39,13 +40,16 @@ public class SyncEngine {
 
     private final Map<String, PmsConnector> connectorsByProperty = new ConcurrentHashMap<>();
     private final GuestDirectoryService guestDirectoryService;
+    private final InHouseReservationService inHouseReservationService;
     private final ReservationEventConsumer reservationEventConsumer;
     private final FolioEventConsumer folioEventConsumer;
 
     public SyncEngine(GuestDirectoryService guestDirectoryService,
+                      InHouseReservationService inHouseReservationService,
                       ReservationEventConsumer reservationEventConsumer,
                       FolioEventConsumer folioEventConsumer) {
         this.guestDirectoryService = guestDirectoryService;
+        this.inHouseReservationService = inHouseReservationService;
         this.reservationEventConsumer = reservationEventConsumer;
         this.folioEventConsumer = folioEventConsumer;
     }
@@ -73,6 +77,11 @@ public class SyncEngine {
                 reservations.forEach(this::publish);
                 profiles.forEach(this::publish);
                 folios.forEach(this::publish);
+
+                // Guests who checked out (departure date passed) must stop
+                // appearing as "in-house" on the kiosk even though Opera
+                // sends no further events for them.
+                inHouseReservationService.pruneCheckedOut();
             } catch (Exception e) {
                 log.warn("Poll failed for property {}", propertyCode, e);
             }
@@ -114,6 +123,9 @@ public class SyncEngine {
 
     private void publish(ReservationEvent event) {
         log.info("Reservation event: {} {}", event.getChangeType(), event.getReservationId());
+        // Keep the local in-house mirror current FIRST — this is what lets
+        // kiosk bookings resolve a checked-in guest to their live folio.
+        inHouseReservationService.upsert(event);
         reservationEventConsumer.consume(event);
     }
 
