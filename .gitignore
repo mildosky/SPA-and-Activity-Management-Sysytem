@@ -1,8 +1,2 @@
-# Compiled and build artifacts
-*.class
-
-# Dependency directories
-target/
-# Local databases & logs
-data/
-*.log
+# Git bundles
+*.bundle
