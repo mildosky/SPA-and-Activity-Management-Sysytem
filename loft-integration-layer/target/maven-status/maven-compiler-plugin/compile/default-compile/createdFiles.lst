@@ -72,8 +72,10 @@ com/loft/loftintegration/payment/model/PaymentStatus.class
 com/loft/loftintegration/reporting/web/BookingsSummaryResponse$ActivityBreakdown.class
 com/loft/loftintegration/payment/model/PaymentTransaction.class
 com/loft/loftintegration/booking/web/CreateRecurringBookingRequest.class
+com/loft/loftintegration/directory/service/InHouseReservationService.class
 com/loft/loftintegration/booking/model/Booking.class
 com/loft/loftintegration/webshop/web/KioskController.class
+com/loft/loftintegration/directory/repository/InHouseReservationMirrorRepository.class
 com/loft/loftintegration/sync/model/FolioEvent.class
 com/loft/loftintegration/property/repository/PropertyBusinessHoursRepository.class
 com/loft/loftintegration/tools/OperaTableDump.class
@@ -111,6 +113,7 @@ com/loft/loftintegration/pos/model/ChargeStatus.class
 com/loft/loftintegration/booking/repository/ActivityTypeRepository.class
 com/loft/loftintegration/directory/repository/OperaGuestMirrorRepository.class
 com/loft/loftintegration/webshop/web/WebshopBookingController.class
+com/loft/loftintegration/directory/model/InHouseReservationMirror.class
 com/loft/loftintegration/pos/repository/ChargeRepository.class
 com/loft/loftintegration/property/service/PropertyBusinessHoursService.class
 com/loft/loftintegration/payment/service/PaymentGatewayService.class

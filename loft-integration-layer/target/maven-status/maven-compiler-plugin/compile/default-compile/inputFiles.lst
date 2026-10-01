@@ -31,10 +31,12 @@
 /workspace/loft-integration-layer/src/main/java/com/loft/loftintegration/webshop/web/WebshopCatalogController.java
 /workspace/loft-integration-layer/src/main/java/com/loft/loftintegration/booking/web/CreateRecurringBookingRequest.java
 /workspace/loft-integration-layer/src/main/java/com/loft/integration/installer/InstallerRunner.java
+/workspace/loft-integration-layer/src/main/java/com/loft/loftintegration/directory/repository/InHouseReservationMirrorRepository.java
 /workspace/loft-integration-layer/src/main/java/com/loft/loftintegration/config/PropertyProfile.java
 /workspace/loft-integration-layer/src/main/java/com/loft/loftintegration/booking/web/ShiftTemplateForm.java
 /workspace/loft-integration-layer/src/main/java/com/loft/loftintegration/pos/model/ChargeType.java
 /workspace/loft-integration-layer/src/main/java/com/loft/loftintegration/webshop/web/WebshopAvailabilityController.java
+/workspace/loft-integration-layer/src/main/java/com/loft/loftintegration/directory/model/InHouseReservationMirror.java
 /workspace/loft-integration-layer/src/main/java/com/loft/loftintegration/pos/repository/ChargeRepository.java
 /workspace/loft-integration-layer/src/main/java/com/loft/loftintegration/webshop/web/GiftCertificateController.java
 /workspace/loft-integration-layer/src/main/java/com/loft/loftintegration/pos/service/BillingService.java
@@ -55,6 +57,7 @@
 /workspace/loft-integration-layer/src/main/java/com/loft/loftintegration/payment/model/PaymentGatewayProvider.java
 /workspace/loft-integration-layer/src/main/java/com/loft/loftintegration/reporting/service/ReportingService.java
 /workspace/loft-integration-layer/src/main/java/com/loft/loftintegration/license/LicenseValidator.java
+/workspace/loft-integration-layer/src/main/java/com/loft/loftintegration/directory/service/InHouseReservationService.java
 /workspace/loft-integration-layer/src/main/java/com/loft/loftintegration/booking/model/ActivityCategory.java
 /workspace/loft-integration-layer/src/main/java/com/loft/loftintegration/property/service/PropertyBusinessHoursService.java
 /workspace/loft-integration-layer/src/main/java/com/loft/loftintegration/webshop/web/ActivityTypeResponse.java

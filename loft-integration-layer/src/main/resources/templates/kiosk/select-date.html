@@ -29,6 +29,17 @@
         .btn { display: inline-block; padding: 1rem 2rem; border-radius: 8px; text-decoration: none; font-weight: 600; transition: all 0.2s; border: none; cursor: pointer; font-size: 1rem; margin-top: 1rem; }
         .btn-secondary { background: #f0f0f0; color: #333; }
         .btn-secondary:hover { background: #e0e0e0; }
+        .guest-section { margin-bottom: 2rem; }
+        .guest-section h3 { margin-bottom: 0.5rem; color: #333; }
+        .guest-hint { color: #666; font-size: 0.9rem; margin-bottom: 1rem; }
+        .guest-list { max-height: 260px; overflow-y: auto; border: 1px solid #eee; border-radius: 8px; }
+        .guest-option { display: flex; justify-content: space-between; align-items: center; width: 100%; padding: 0.9rem 1rem; background: white; border: none; border-bottom: 1px solid #f0f0f0; cursor: pointer; font-size: 1rem; text-align: left; transition: background 0.15s; }
+        .guest-option:last-child { border-bottom: none; }
+        .guest-option:hover { background: #e8ecff; }
+        .guest-option.selected { background: #667eea; color: white; }
+        .guest-option .room { font-size: 0.85rem; opacity: 0.8; }
+        .guest-search { width: 100%; padding: 0.75rem 1rem; border: 2px solid #ddd; border-radius: 8px; font-size: 1rem; margin-bottom: 0.75rem; }
+        .walkin-note { font-size: 0.85rem; color: #888; margin-top: 0.5rem; }
     </style>
 </head>
 <body>
@@ -42,6 +53,28 @@
             <div class="activity-info">
                 <h2 th:text="${activity.name}">60-Minute Massage</h2>
                 <p><span th:text="${activity.defaultDurationMinutes}">60</span> minutes • <span th:text="${activity.price} + ' ' + ${activity.currency}">45000 NGN</span></p>
+            </div>
+
+            <div class="guest-section">
+                <h3>Who is booking?</h3>
+                <p class="guest-hint">Select your name to charge this booking to your Opera room folio.</p>
+                <input type="text" id="guestSearch" class="guest-search" placeholder="Type your surname…" oninput="filterGuests()" />
+                <div class="guest-list" id="guestList">
+                    <button type="button" class="guest-option" th:each="g : ${allProfiles}"
+                            th:data-profile="${g.operaNameId}"
+                            th:data-name="${(g.firstName == null ? '' : g.firstName + ' ') + (g.lastName == null ? '' : g.lastName)}"
+                            th:data-room="${inHouseRooms.containsKey(g.operaNameId) ? inHouseRooms.get(g.operaNameId) : ''}"
+                            onclick="selectGuest(this)">
+                        <span th:text="${(g.firstName == null ? '' : g.firstName + ' ') + (g.lastName == null ? '' : g.lastName) + ' (' + g.operaNameId + ')'}">Jane Smith (1234)</span>
+                        <span class="room" th:if="${inHouseRooms.containsKey(g.operaNameId)}"
+                              th:text="'In-house — Room ' + ${inHouseRooms.get(g.operaNameId)}">In-house — Room 412</span>
+                        <span class="room" th:unless="${inHouseRooms.containsKey(g.operaNameId)}" style="opacity:0.5;">Not checked in</span>
+                    </button>
+                    <div th:if="${allProfiles == null or allProfiles.isEmpty()}" style="padding:1rem;color:#888;">
+                        No Opera guest profiles synced yet — you can still book as a walk-in below.
+                    </div>
+                </div>
+                <p class="walkin-note">Not staying with us? Just pick a time below — we'll take your details at the desk.</p>
             </div>
 
             <h3 style="margin-bottom: 1rem;">Select a Date</h3>
@@ -71,6 +104,20 @@
     <script>
         const activityId = /*[[${activity.id}]]*/ 1;
         let selectedDate = null;
+        let selectedProfileId = null;
+
+        function selectGuest(element) {
+            document.querySelectorAll('.guest-option').forEach(el => el.classList.remove('selected'));
+            element.classList.add('selected');
+            selectedProfileId = element.dataset.profile;
+        }
+
+        function filterGuests() {
+            const q = document.getElementById('guestSearch').value.toLowerCase();
+            document.querySelectorAll('.guest-option').forEach(el => {
+                el.style.display = el.dataset.name.toLowerCase().includes(q) ? '' : 'none';
+            });
+        }
 
         function selectDate(element) {
             document.querySelectorAll('.date-card').forEach(el => el.classList.remove('selected-date'));
@@ -82,7 +129,11 @@
 
         function selectTime(button) {
             const time = button.dataset.time;
-            window.location.href = '/kiosk/activity/' + activityId + '/book?date=' + selectedDate + '&time=' + encodeURIComponent(time);
+            let url = '/kiosk/activity/' + activityId + '/book?date=' + selectedDate + '&time=' + encodeURIComponent(time);
+            if (selectedProfileId) {
+                url += '&profileId=' + encodeURIComponent(selectedProfileId);
+            }
+            window.location.href = url;
         }
     </script>
 </body>

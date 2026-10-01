@@ -31,4 +31,7 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
     List<Object[]> countBookingsByActivityType(@Param("propertyCode") String propertyCode);
 
     long countByActivityTypeAndGuestProfileId(com.loft.loftintegration.booking.model.ActivityType activityType, String guestProfileId);
+
+    /** Bookings linked to one Opera profile — used to resolve a guest's live in-house stay at booking time. */
+    List<Booking> findByGuestProfileId(String guestProfileId);
 }

@@ -158,4 +158,9 @@ public class BookingService {
         return activityTypeRepository.findById(id)
             .orElseThrow(() -> new NoSuchElementException("No ActivityType with id " + id));
     }
+
+    /** Catalog for one property — drives the kiosk/webshop activity listing. */
+    public List<ActivityType> listActivityTypes(String propertyCode) {
+        return activityTypeRepository.findByPropertyCode(propertyCode);
+    }
 }

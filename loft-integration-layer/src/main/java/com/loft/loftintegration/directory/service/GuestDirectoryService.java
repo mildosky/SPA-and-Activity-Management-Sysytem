@@ -6,6 +6,7 @@ import com.loft.loftintegration.sync.model.GuestProfileEvent;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -84,5 +85,15 @@ public class GuestDirectoryService {
             String full = (first + " " + last).trim();
             return full.isEmpty() ? null : full;
         });
+    }
+
+    /** All known Opera guest profiles, surname-ordered. Powers the kiosk profile picker. */
+    @Transactional(readOnly = true)
+    public List<OperaGuestMirror> allProfiles() {
+        return repository.findAll().stream()
+                .sorted(java.util.Comparator.comparing(
+                        m -> m.getLastName() == null ? "" : m.getLastName(),
+                        String.CASE_INSENSITIVE_ORDER))
+                .toList();
     }
 }

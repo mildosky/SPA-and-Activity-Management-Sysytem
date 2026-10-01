@@ -53,6 +53,8 @@
 
     <div class="container">
         <div th:if="${successMessage}" class="success-message" th:text="${successMessage}"></div>
+        <div th:if="${errorMessage}" class="success-message" style="background:#fdecea;color:#b71c1c;" th:text="${errorMessage}"></div>
+        <div th:if="${operaNote}" class="success-message" th:text="${operaNote}"></div>
 
         <form method="get" action="/admin/bookings" class="toolbar">
             <div>
@@ -86,6 +88,7 @@
                     <th>Activity</th>
                     <th>Date &amp; Time</th>
                     <th>Status</th>
+                    <th>Billing</th>
                     <th>Actions</th>
                 </tr>
             </thead>
@@ -101,6 +104,17 @@
                     <td th:text="${#temporals.format(b.startTime, 'EEE d MMM, HH:mm')} + ' – ' + ${#temporals.format(b.endTime, 'HH:mm')}">Mon 16 Sep, 14:00 – 15:00</td>
                     <td><span class="badge" th:classappend="'badge-' + ${b.status}" th:text="${b.status}">CONFIRMED</span></td>
                     <td>
+                        <div th:if="${charges.containsKey(b.id)}">
+                            <span th:text="${charges.get(b.id).amount} + ' ' + ${charges.get(b.id).currency}">45000 NGN</span>
+                            <br>
+                            <small style="color:#888;" th:text="${charges.get(b.id).status}">POSTED_LOCALLY</small>
+                            <br>
+                            <small style="color:#888;" th:if="${charges.get(b.id).operaReservationId != null}"
+                                  th:text="'Resv ' + ${charges.get(b.id).operaReservationId}"></small>
+                        </div>
+                        <span th:unless="${charges.containsKey(b.id)}" style="color:#bbb;">—</span>
+                    </td>
+                    <td>
                         <div class="actions">
                             <form th:if="${b.status.name() == 'TENTATIVE' or b.status.name() == 'PENDING_PAYMENT'}"
                                   class="inline" method="post" th:action="'/admin/bookings/' + ${b.id} + '/confirm'">
@@ -109,6 +123,10 @@
                             <form th:unless="${b.status.name() == 'CANCELLED' or b.status.name() == 'COMPLETED'}"
                                   class="inline" method="post" th:action="'/admin/bookings/' + ${b.id} + '/complete'">
                                 <button type="submit" class="btn btn-secondary">Complete</button>
+                            </form>
+                            <form th:if="${charges.containsKey(b.id) and charges.get(b.id).status.name() != 'POSTED_TO_OPERA'}"
+                                  class="inline" method="post" th:action="'/admin/bookings/' + ${b.id} + '/post-to-opera'">
+                                <button type="submit" class="btn btn-success">Post to Opera</button>
                             </form>
                             <form th:unless="${b.status.name() == 'CANCELLED'}"
                                   class="inline" method="post" th:action="'/admin/bookings/' + ${b.id} + '/cancel'"

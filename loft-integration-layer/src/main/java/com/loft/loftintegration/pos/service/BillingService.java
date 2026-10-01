@@ -2,6 +2,7 @@ package com.loft.loftintegration.pos.service;
 
 import com.loft.loftintegration.booking.model.Booking;
 import com.loft.loftintegration.connector.PmsConnectionException;
+import com.loft.loftintegration.directory.service.InHouseReservationService;
 import com.loft.loftintegration.pos.model.Charge;
 import com.loft.loftintegration.pos.model.ChargeStatus;
 import com.loft.loftintegration.pos.model.ChargeType;
@@ -36,12 +37,15 @@ public class BillingService {
 
     private final ChargeRepository chargeRepository;
     private final SyncEngine syncEngine;
+    private final InHouseReservationService inHouseReservationService;
     private final boolean operaFolioPostingEnabled;
 
     public BillingService(ChargeRepository chargeRepository, SyncEngine syncEngine,
+                           InHouseReservationService inHouseReservationService,
                            @Value("${loft-integration.opera-folio-posting-enabled:false}") boolean operaFolioPostingEnabled) {
         this.chargeRepository = chargeRepository;
         this.syncEngine = syncEngine;
+        this.inHouseReservationService = inHouseReservationService;
         this.operaFolioPostingEnabled = operaFolioPostingEnabled;
     }
 
@@ -106,6 +110,12 @@ public class BillingService {
             return "No live Opera connector is registered for property " + charge.getPropertyCode()
                     + " — check the property profile config and Opera connectivity.";
         }
+        // Same late-resolution as attemptPost: staff pressing "Post to Opera"
+        // after the guest had already checked in should still find their stay.
+        if (charge.getOperaReservationId() == null && charge.getGuestProfileId() != null) {
+            inHouseReservationService.findByGuestProfileId(charge.getGuestProfileId())
+                    .ifPresent(mirror -> charge.setOperaReservationId(mirror.getOperaReservationId()));
+        }
         if (charge.getOperaReservationId() == null) {
             return "This charge has no Opera reservation link — the guest must be identified as an "
                     + "in-house guest (or the booking linked to their stay) before it can post to a folio.";
@@ -134,6 +144,21 @@ public class BillingService {
      * the guest still gets billed within this system either way.
      */
     private void attemptPost(Charge charge) {
+        // A booking charge created without an operaReservationId can still be
+        // posted if we can resolve the guest's CURRENT in-house stay from the
+        // synced mirror (their profile id is on the charge). This is what makes
+        // "charge to the room" work end-to-end for kiosk/webshop bookings made
+        // by checked-in guests.
+        if (charge.getOperaReservationId() == null && charge.getGuestProfileId() != null) {
+            inHouseReservationService.findByGuestProfileId(charge.getGuestProfileId())
+                    .ifPresent(mirror -> {
+                        charge.setOperaReservationId(mirror.getOperaReservationId());
+                        chargeRepository.save(charge);
+                        log.info("Resolved live in-house reservation {} for profile {} — linked to charge {}.",
+                                mirror.getOperaReservationId(), charge.getGuestProfileId(), charge.getId());
+                    });
+        }
+
         if (!operaFolioPostingEnabled) {
             log.debug("Opera folio posting disabled — charge {} marked POSTED_LOCALLY.", charge.getId());
             markPostedLocally(charge);

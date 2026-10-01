@@ -5,6 +5,10 @@ import com.loft.loftintegration.booking.model.BookingStatus;
 import com.loft.loftintegration.booking.repository.BookingRepository;
 import com.loft.loftintegration.booking.service.BookingService;
 import com.loft.loftintegration.directory.service.GuestDirectoryService;
+import com.loft.loftintegration.pos.model.Charge;
+import com.loft.loftintegration.pos.model.ChargeType;
+import com.loft.loftintegration.pos.repository.ChargeRepository;
+import com.loft.loftintegration.pos.service.BillingService;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -35,13 +39,19 @@ public class AdminBookingsController {
     private final BookingRepository bookingRepository;
     private final BookingService bookingService;
     private final GuestDirectoryService guestDirectoryService;
+    private final BillingService billingService;
+    private final ChargeRepository chargeRepository;
 
     public AdminBookingsController(BookingRepository bookingRepository,
                                    BookingService bookingService,
-                                   GuestDirectoryService guestDirectoryService) {
+                                   GuestDirectoryService guestDirectoryService,
+                                   BillingService billingService,
+                                   ChargeRepository chargeRepository) {
         this.bookingRepository = bookingRepository;
         this.bookingService = bookingService;
         this.guestDirectoryService = guestDirectoryService;
+        this.billingService = billingService;
+        this.chargeRepository = chargeRepository;
     }
 
     @GetMapping
@@ -70,8 +80,18 @@ public class AdminBookingsController {
             guestNames.put(b.getId(), resolveGuestName(b));
         }
 
+        // Billing state per booking, so staff can see whether the charge made
+        // it onto the guest's Opera folio — and post it if it hasn't.
+        Map<Long, Charge> charges = new HashMap<>();
+        for (Booking b : bookings) {
+            chargeRepository.findByChargeTypeAndSourceId(ChargeType.BOOKING, b.getId())
+                    .stream().findFirst()
+                    .ifPresent(c -> charges.put(b.getId(), c));
+        }
+
         model.addAttribute("bookings", bookings);
         model.addAttribute("guestNames", guestNames);
+        model.addAttribute("charges", charges);
         model.addAttribute("statuses", BookingStatus.values());
         model.addAttribute("selectedDate", date != null ? date : LocalDate.now());
         model.addAttribute("today", LocalDate.now());
@@ -110,7 +130,39 @@ public class AdminBookingsController {
             b.setStatus(BookingStatus.COMPLETED);
             bookingRepository.save(b);
         });
-        redirectAttributes.addFlashAttribute("successMessage", "Booking marked as completed.");
+        // Auto-create the charge on completion if one doesn't exist yet
+        // (webshop/staff bookings are billed here; kiosk bookings already
+        // created theirs at confirm time and are left untouched).
+        String message = "Booking marked as completed.";
+        List<Charge> existing = chargeRepository.findByChargeTypeAndSourceId(ChargeType.BOOKING, id);
+        if (existing.isEmpty()) {
+            bookingRepository.findById(id).ifPresent(b -> {
+                Charge charge = billingService.chargeForBooking(b);
+                if (charge.getOperaReservationId() != null) {
+                    redirectAttributes.addFlashAttribute("operaNote",
+                            "Charge " + charge.getAmount() + " " + charge.getCurrency()
+                                    + " linked to Opera reservation " + charge.getOperaReservationId()
+                                    + " (status: " + charge.getStatus() + ").");
+                }
+            });
+            message += " Charge created.";
+        }
+        redirectAttributes.addFlashAttribute("successMessage", message);
+        return "redirect:/admin/bookings";
+    }
+
+    /** Staff action: push this booking's charge onto the guest's Opera folio now. */
+    @PostMapping("/{id}/post-to-opera")
+    public String postToOpera(@PathVariable Long id, RedirectAttributes redirectAttributes) {
+        List<Charge> charges = chargeRepository.findByChargeTypeAndSourceId(ChargeType.BOOKING, id);
+        if (charges.isEmpty()) {
+            redirectAttributes.addFlashAttribute("errorMessage",
+                    "No charge exists for this booking yet — complete it first.");
+        } else {
+            String outcome = billingService.postChargeToOpera(charges.get(0).getId());
+            redirectAttributes.addFlashAttribute(
+                    outcome.startsWith("Posted") ? "successMessage" : "errorMessage", outcome);
+        }
         return "redirect:/admin/bookings";
     }
 

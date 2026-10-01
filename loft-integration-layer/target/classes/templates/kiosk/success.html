@@ -30,6 +30,7 @@
             <p><strong>Guest:</strong> <span th:text="${guestName}">John Doe</span></p>
             <p><strong>Activity:</strong> <span th:text="${activityName}">60-Minute Massage</span></p>
             <p><strong>Time:</strong> <span th:text="${#temporals.format(bookingTime, 'EEE, MMM d, yyyy''at''h:mm a')}">Mon, Jan 1, 2024 at 10:00 AM</span></p>
+            <p th:if="${folioNote != null}" style="margin-top:0.75rem;"><strong>Billing:</strong> <span th:text="${folioNote}">Charge linked to your Opera folio.</span></p>
         </div>
         
         <p style="color: #666; margin-bottom: 2rem;">

@@ -49,7 +49,17 @@
                 
                 <div class="form-group">
                     <label for="guestName">Full Name *</label>
-                    <input type="text" id="guestName" name="guestName" required placeholder="John Doe" />
+                    <input type="text" id="guestName" name="guestName" required placeholder="John Doe"
+                           th:value="${matchedName}" />
+                </div>
+
+                <input type="hidden" name="operaProfileId" th:value="${selectedProfileId}" />
+
+                <div class="booking-summary" th:if="${selectedProfileId != null and !selectedProfileId.isEmpty()}">
+                    <p><strong>Opera guest:</strong> <span th:text="${matchedName}">Jane Smith</span>
+                        (<span th:text="${selectedProfileId}">12345</span>)</p>
+                    <p th:if="${matchedRoom != null and !matchedRoom.isEmpty()}"><strong>In-house:</strong> Room <span th:text="${matchedRoom}">412</span> — charge will post to your room folio.</p>
+                    <p th:unless="${matchedRoom != null and !matchedRoom.isEmpty()}">Not currently checked in — charge will be settled at reception.</p>
                 </div>
                 
                 <div class="form-group">
