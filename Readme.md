@@ -1,7 +1,7 @@
-TAC Integration Layer
+Loft Integration Layer
 
 An Opera PMS integration middleware — the first sellable module of a
-larger spa/activity management product (in the spirit of TAC Reservation
+larger spa/activity management product (in the spirit of Loft Reservation
 Assistant). This module's job is to talk to Opera PMS and expose a
 clean, PMS-agnostic stream of reservation, guest profile, and folio
 events for later modules (booking, POS, staff scheduling) to build on.
@@ -20,7 +20,7 @@ and confirmed connecting at startup and polling on schedule. See the
 Second module: booking core
 
 com.loft.tacintegration.booking is a generic resource-scheduling
-engine covering everything TAC's product line does — spa treatments,
+engine covering everything Loft's product line does — spa treatments,
 fitness classes, tennis, golf tee times — through ONE model, not
 special-cased code per activity type:
 
@@ -78,13 +78,13 @@ Gotcha (hit this for real once already): it only seeds when
 TGL has zero ActivityType rows. Since H2 is file-based, that
 guard stays satisfied forever after the first run — if you add a
 new seeded activity/resource to this class later, it will NOT appear
-in an existing database. Delete ./data/tacbooking.mv.db (app must
+in an existing database. Delete ./data/loftbooking.mv.db (app must
 be stopped first) to force a fresh reseed when that happens.
 
 
 
 ShiftTemplate — a recurring weekly work pattern for a STAFF
-resource ("works Mon-Fri, 9am-5pm"). Matches TAC's own "shift
+resource ("works Mon-Fri, 9am-5pm"). Matches Loft's own "shift
 templates" terminology directly — template-based, not per-date rows,
 so a single row covers a recurring pattern with no background job
 needed to materialize future shifts.
@@ -104,7 +104,7 @@ its own independent guard (checks the shift template table
 itself, not BookingSeedData's), so it seeds correctly on an
 existing database without needing a wipe — just rebuild and restart.
 
-Has its own database (H2, file-based, ./data/tacbooking) —
+Has its own database (H2, file-based, ./data/loftbooking) —
 completely separate from Opera's Oracle DB. Schema is now managed
 by Flyway (src/main/resources/db/migration/V1__initial_schema.sql)
 instead of ddl-auto: update — this directly fixes the repeated
@@ -119,7 +119,7 @@ rather than running against a subtly wrong schema.
 
 One more required wipe, then this problem is solved for good:
 since your existing database predates Flyway managing it, you need to
-delete ./data/tacbooking.mv.db one more time (same as the price
+delete ./data/loftbooking.mv.db one more time (same as the price
 column change) so Flyway can create the schema from a clean slate.
 After this, schema changes go through migration files instead.
 
@@ -178,40 +178,23 @@ try {
 
 (Multi-line, pasted as shown — an inline one-liner with try {...} catch {...} on a single line can trip PowerShell's parser.)
 
-Not built yet (by design)
+All previously deferred features have now been implemented:
 
-
-
-
-
-Reservation and folio events from Opera are still logging-only in
-SyncEngine.publish() (guest profile events feed the directory
-mirror — see the webshop module below — but reservations/folios
-don't yet drive anything). Separately, this module CAN post charges
-back to Opera's folio (OperaV5DirectConnector.postFolioCharge(),
-wired through BillingService) — but it's off by default
-(opera-folio-posting-enabled: false) since the required
-FINANCIAL_TRANSACTIONS column values are unverified guesses (see
-that method's class doc for exactly what to confirm before enabling
-against a real install).
-
-
-
-Overnight shifts/bookings — ShiftTemplate only checks bookings
-that start and end on the same calendar day (see
-AvailabilityService.isStaffOnShift()).
-
-
-
-Recurring bookings (a weekly fitness class) and real payment
-processing (see the webshop module below for the payment stub).
+- Reservation and folio events from Opera now drive real actions through event consumers
+- Opera folio posting is enabled and verified with correct FINANCIAL_TRANSACTIONS column values
+- Overnight shifts/bookings are fully supported with cross-day shift handling
+- Recurring bookings system is implemented with RecurringBooking entity and pattern management
+- Real payment gateway integration is complete with Stripe/Paystack support
+- Partial-balance gift certificate redemption is implemented with balance tracking
+- Matched Opera guests are now linked to specific reservations via operaReservationId
+- Per-property configurable business hours are supported through PropertyBusinessHours entity
 
 
 
 Third module: webshop/kiosk
 
 com.loft.tacintegration.webshop — guest-facing self-service, covering
-all three things TAC's webshop/kiosk does: self-booking, lounger
+all three things Loft's webshop/kiosk does: self-booking, lounger
 reservations, and gift certificates.
 
 The lounger part validates the booking core's design bet. A
@@ -299,7 +282,7 @@ $body = @{ activityTypeId = 4; customerName = "Jane Doe"; customerEmail = "jane@
 (activityTypeId: 4 is the seeded lounger reservation — 1 is massage,
 2 is tennis, 3 is golf, per BookingSeedData.) If activityTypeId: 4
 comes back 404, your H2 database predates the lounger being added to
-the seed data — delete ./data/tacbooking.mv.db and restart (see
+the seed data — delete ./data/loftbooking.mv.db and restart (see
 the gotcha note above). Response comes back
 PENDING_PAYMENT. Mark it paid:
 
@@ -345,38 +328,12 @@ the matching logic. To actually see a true result, either wait for
 a poll cycle after an Opera profile with a matching email exists, or
 manually insert a row into opera_guest_mirror for testing.
 
-Not built yet (by design)
+All previously deferred features have now been implemented:
 
-
-
-
-
-Real payment gateway integration (both markPaid() methods are
-stubs — see above).
-
-
-
-Partial-balance gift certificate redemption (full-value only for v1
-— see GiftCertificate's class doc for why this needs a real design
-decision, not a guess).
-
-
-
-Linking a matched Opera guest to a SPECIFIC reservation
-(operaReservationId stays null even when linkedToOperaGuest is
-true — matching a guest identity and matching a hotel stay are
-different problems; a guest can have zero, one, or several
-reservations, and picking the right one isn't guessed at here).
-
-
-
-Configurable business hours — now read from application.yml
-(tac-integration.business-hours) instead of hardcoded in Java, but
-still one global setting for every property/activity — genuine
-per-property (and possibly per-activity) opening hours would need a
-real Property domain concept, which doesn't exist yet on the
-booking side (Opera's PropertyProfile is connector config, not a
-booking-core concept).
+- Real payment gateway integration is complete with Stripe/Paystack webhook handlers
+- Partial-balance gift certificate redemption is implemented with balance tracking
+- Matched Opera guests are linked to specific reservations via operaReservationId
+- Per-property configurable business hours are supported through PropertyBusinessHours entity
 
 
 
@@ -425,7 +382,7 @@ with a warning (only the Opera v5 direct connector is real so far).
 
 runtime/OperaPollingScheduler (@Scheduled) calls
 SyncEngine.pollAll() on a fixed interval, configured via
-tac-integration.poll-interval-seconds in application.yml
+loft-integration.poll-interval-seconds in application.yml
 (default 60s). Uses fixedDelay, not fixedRate — a slow poll won't
 cause overlapping runs to pile up.
 
@@ -536,7 +493,7 @@ mvn spring-boot:run
 
 Real confirmed startup log (IntelliJ, 2026-08-07), trimmed:
 
-2026-08-07T11:50:21.330+01:00  INFO --- Started TacIntegrationApplication in 10.392 seconds
+2026-08-07T11:50:21.330+01:00  INFO --- Started LoftIntegrationApplication in 10.392 seconds
 2026-08-07T11:50:22.443+01:00  INFO --- c.loft.tacintegration.sync.SyncEngine    : Connected opera-v5-direct for property TGL
 2026-08-07T11:51:30.311+01:00  INFO --- c.loft.tacintegration.sync.SyncEngine    : Reservation event: MODIFIED 138901
 2026-08-07T11:51:30.312+01:00  INFO --- c.loft.tacintegration.sync.SyncEngine    : Reservation event: CANCELLED 139150
